@@ -670,8 +670,8 @@ const GH_DAILY=[
   {type:'daily-sleep-temperature-derivations',key:'dailySleepTemperatureDerivations',map:(o,d)=>{d.temp=numOf(o.nightlyTemperatureCelsius);d.base=numOf(o.baselineTemperatureCelsius)}},
   {type:'daily-resting-heart-rate',key:'dailyRestingHeartRate',map:(o,d)=>{d.rhr=numOf(o.beatsPerMinute)}},
   {type:'daily-heart-rate-variability',key:'dailyHeartRateVariability',map:(o,d)=>{d.hrv=numOf(o.averageHeartRateVariabilityMilliseconds)??numOf(o.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds)}},
-  {type:'daily-respiratory-rate',key:'dailyRespiratoryRate',map:(o,d)=>{d.br=firstNum(o)}},
-  {type:'daily-oxygen-saturation',key:'dailyOxygenSaturation',map:(o,d)=>{d.spo2=firstNum(o)}}
+  {type:'daily-respiratory-rate',key:'dailyRespiratoryRate',map:(o,d)=>{d.br=numOf(o.breathsPerMinute)??firstNum(o)}},
+  {type:'daily-oxygen-saturation',key:'dailyOxygenSaturation',map:(o,d)=>{d.spo2=numOf(o.averagePercentage)??firstNum(o)}}
 ];
 function ghToken(){
   try{const o=JSON.parse(localStorage.getItem(LS_GH)||'null');if(o&&o.exp>Date.now()+60000)return o.token}catch(e){}
@@ -719,7 +719,7 @@ async function ghSync(){
   const errs=[];let got=0;
   for(const g of GH_DAILY){
     try{
-      const pts=await ghList(g.type,`${g.key}.date >= "${from}"`,1000,token);
+      const pts=await ghList(g.type,`${g.type.replace(/-/g,'_')}.date >= "${from}"`,1000,token);
       if(pts[0])console.log('[gh]',g.type,JSON.stringify(pts[0]).slice(0,400));
       for(const p of pts){
         const o=p[g.key];if(!o)continue;
@@ -739,7 +739,12 @@ async function ghSync(){
     for(const p of pts){
       const s=p.sleep;if(!s||!s.summary)continue;
       const iv=s.interval||{};
-      const k=(iv.civilEndTime&&dateOf(iv.civilEndTime.date))||(iv.endTime?iv.endTime.slice(0,10):null);
+      let k=iv.civilEndTime&&dateOf(iv.civilEndTime.date);
+      if(!k&&iv.endTime){
+        const off=parseFloat(iv.endUtcOffset||'0')||0;
+        const dt=new Date(Date.parse(iv.endTime)+off*1000);
+        k=keyOf(dt.getUTCFullYear(),dt.getUTCMonth(),dt.getUTCDate());
+      }
       if(!k)continue;
       sums[k]=(sums[k]||0)+(numOf(s.summary.minutesAsleep)||0);got++;
     }

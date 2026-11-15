@@ -1,4 +1,4 @@
-const CACHE = 'skin-diary-v3';
+const CACHE = 'skin-diary-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -14,8 +14,21 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Serve from cache right away (works offline), refresh the cache in the background.
+// The page itself: network first so updates show on the next open; cached copy when offline.
+// Everything else: serve from cache right away, refresh the cache in the background.
 self.addEventListener('fetch', e => {
+  if (e.request.mode === 'navigate') {
+    e.respondWith(caches.open(CACHE).then(async c => {
+      try {
+        const r = await fetch(e.request, { cache: 'no-store' });
+        if (r && r.ok) c.put('./index.html', r.clone());
+        return r;
+      } catch (err) {
+        return (await c.match('./index.html')) || (await c.match('./')) || Response.error();
+      }
+    }));
+    return;
+  }
   if (e.request.method !== 'GET') return;
   const host = new URL(e.request.url).host;
   // Only the app's own files and its fonts are cached; health data always goes to the network.
