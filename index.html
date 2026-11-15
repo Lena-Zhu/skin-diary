@@ -249,6 +249,18 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
 .btn-danger{background:#FFF0F0;color:#C24848}
 .btn-danger.armed{background:#E05757;color:#fff}
 
+/* health card */
+.h-status{margin:6px 0 12px;font-size:14px;color:var(--muted)}
+.chart-wrap{position:relative;margin-top:6px}
+.chart-wrap svg{width:100%;height:auto;display:block;touch-action:pan-y}
+.chart-title{font-size:15px;font-weight:700;margin:4px 0 0}
+.chart-sub{font-size:13px;color:var(--muted);margin:0}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:13px;line-height:1.4;border-radius:10px;padding:6px 9px;white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));z-index:2}
+.vitals{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;margin-top:10px}
+.vitals b{font-family:var(--font-num);font-weight:600;font-variant-numeric:tabular-nums}
+.insight{margin-top:10px;padding:10px 12px;border-radius:16px;background:var(--ph-ov);font-size:15px}
+.day-vitals{font-size:14px;color:var(--ink);background:#FFF8FA;border-radius:14px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px 14px}
+
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:15px;max-width:calc(100% - 32px);text-align:center}
 @media (prefers-reduced-motion:no-preference){
   .sheet:not([hidden]){animation:up .25s cubic-bezier(.2,.9,.3,1.2)}
@@ -325,6 +337,18 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
           <button id="periodBtn" class="pill solid" type="button">例假来了</button>
           <button id="logTodayBtn" class="pill" type="button">记录今天</button>
         </div>
+      </div>
+    </section>
+
+    <section class="card pad" aria-label="身体数据">
+      <div class="sec-head" style="padding:0;margin:0"><h2>身体数据</h2><button id="ghBtn" class="pill solid" type="button">连接 Google Health</button></div>
+      <p id="ghStatus" class="h-status">连上以后，会把 Fitbit 记录的夜间皮肤温度、静息心率、HRV 和睡眠拉进来。数据只存在这台手机里。</p>
+      <div id="ghBody" hidden>
+        <p class="chart-title">夜间皮肤温度（和你平时比）</p>
+        <p class="chart-sub">最近 60 天 · 背景颜色是周期阶段 · 点一下看每天的数</p>
+        <div id="tempChart" class="chart-wrap"></div>
+        <div id="ghInsight" class="insight" hidden></div>
+        <div id="ghVitals" class="vitals"></div>
       </div>
     </section>
 
@@ -412,6 +436,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
 <section id="cycleSheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="cTitle">
   <div class="sheet-head"><div><h2 id="cTitle"></h2><div id="cPhase" class="sub"></div></div><button id="cClose" class="pill solid" type="button">完成</button></div>
   <div class="sheet-body">
+    <div id="cVitals" class="day-vitals" hidden></div>
     <h3>🩸 例假</h3><div id="flowChips" class="chips"></div>
     <h3>整体感觉</h3><div id="feelChips" class="chips"></div>
     <h3>身体</h3><div id="symChips" class="chips"></div>
@@ -475,7 +500,11 @@ const PHASE={
 const GROUPS=[['period','经期'],['follicular','卵泡期'],['ovulation','排卵期前后'],['luteal','黄体期'],['pms','经前期']];
 const DEFAULT_CYCLE={minLen:25,maxLen:28,periodLen:5,luteal:14,pms:7};
 const WD=['日','一','二','三','四','五','六'];
-const LS='skin-diary-v1',LS_TAB='skin-diary-tab';
+const LS='skin-diary-v1',LS_TAB='skin-diary-tab',LS_GH='skin-diary-gh';
+const GH_CLIENT='444668895014-7220h2higl4q3gks1ud79n6a6uv1304v.apps.googleusercontent.com';
+const GH_REDIRECT='https://lena-zhu.github.io/skin-diary/';
+const GH_SCOPES='https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly https://www.googleapis.com/auth/googlehealth.sleep.readonly';
+const GH_API='https://health.googleapis.com/v4/users/me/dataTypes/';
 
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
@@ -514,6 +543,7 @@ const now=new Date();
 const S={
   tags:[],days:{},backupAt:null,
   cycle:{settings:clone(DEFAULT_CYCLE),days:{},customSym:[]},
+  health:{days:{},lastSync:null},
   tab:'skin',y:now.getFullYear(),m:now.getMonth(),cy:now.getFullYear(),cm:now.getMonth(),
   openDate:null,openCDate:null,editTagId:null,color:PALETTE[0],icon:'',pendingImport:null,segs:[]
 };
@@ -521,16 +551,17 @@ function normCycle(c){
   c=c||{};
   return{settings:Object.assign(clone(DEFAULT_CYCLE),c.settings||{}),days:c.days||{},customSym:c.customSym||[]};
 }
+function normHealth(h){h=h||{};return{days:h.days||{},lastSync:h.lastSync||null,syncedAt:h.syncedAt||null}}
 function load(){
   try{
     const raw=localStorage.getItem(LS);
-    if(raw){const o=JSON.parse(raw);S.tags=o.tags||[];S.days=o.days||{};S.backupAt=o.backupAt||null;S.cycle=normCycle(o.cycle);}
+    if(raw){const o=JSON.parse(raw);S.tags=o.tags||[];S.days=o.days||{};S.backupAt=o.backupAt||null;S.cycle=normCycle(o.cycle);S.health=normHealth(o.health);}
     else{S.tags=clone(DEFAULT_TAGS);save()}
   }catch(e){S.tags=clone(DEFAULT_TAGS)}
   try{const t=localStorage.getItem(LS_TAB);if(t==='cycle'||t==='skin')S.tab=t}catch(e){}
 }
 function save(){
-  try{localStorage.setItem(LS,JSON.stringify({tags:S.tags,days:S.days,backupAt:S.backupAt,cycle:S.cycle}))}
+  try{localStorage.setItem(LS,JSON.stringify({tags:S.tags,days:S.days,backupAt:S.backupAt,cycle:S.cycle,health:S.health}))}
   catch(e){toast('没存上，手机空间可能满了')}
 }
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
@@ -554,13 +585,23 @@ function buildSegs(){
   runs.forEach((r,i)=>{
     const nx=runs[i+1];
     if(nx){
-      const ov=nx.startN-L;
-      segs.push({kind:'past',startN:r.startN,runEndN:r.endN,nextN:nx.startN,ovMin:ov,ovMax:ov,ovLikely:ov});
+      const shift=detectShift(r.startN+5,nx.startN-2);
+      const ov=shift!=null?shift-1:nx.startN-L;
+      segs.push({kind:'past',startN:r.startN,runEndN:r.endN,nextN:nx.startN,ovMin:ov,ovMax:ov,ovLikely:ov,tempOv:shift!=null?ov:null});
     }else{
+      const shift=detectShift(r.startN+5,t);
+      if(shift!=null){
+        const ov=shift-1,nextN=Math.max(ov+L,t);
+        segs.push({kind:'current',startN:r.startN,runEndN:r.endN,nextN,ovMin:ov,ovMax:ov,ovLikely:ov,tempOv:ov,
+          minNext:Math.max(ov+L-1,t),maxNext:ov+L+1,late:Math.max(0,t-(ov+L+2))});
+        let s=nextN;
+        for(let k=0;k<10;k++){const nn=s+avg,o=nn-L;segs.push({kind:'future',startN:s,runEndN:s-1,nextN:nn,ovMin:o,ovMax:o,ovLikely:o});s=nn}
+        return;
+      }
       const nextN=Math.max(r.startN+avg,t);
       const ovMin=r.startN+st.minLen-L;
       const ovMax=Math.max(r.startN+st.maxLen-L,nextN-L);
-      segs.push({kind:'current',startN:r.startN,runEndN:r.endN,nextN,ovMin,ovMax,ovLikely:Math.min(r.startN+avg-L,ovMax),
+      segs.push({kind:'current',startN:r.startN,runEndN:r.endN,nextN,ovMin,ovMax,ovLikely:Math.min(r.startN+avg-L,ovMax),tempOv:null,
         minNext:r.startN+st.minLen,maxNext:r.startN+st.maxLen,late:Math.max(0,t-(r.startN+st.maxLen))});
       let s=nextN;
       for(let k=0;k<10;k++){const nn=s+avg,ov=nn-L;segs.push({kind:'future',startN:s,runEndN:s-1,nextN:nn,ovMin:ov,ovMax:ov,ovLikely:ov});s=nn}
@@ -591,6 +632,222 @@ function phaseLine(k){
   if(!p)return'';
   return `周期第 ${p.cycleDay} 天 · ${PHASE[p.key].n}`+(p.period==='pred'?'（预计）':'');
 }
+
+/* ================= Google Health ================= */
+const numOf=v=>v==null||v===''?null:(typeof v==='number'?v:(isNaN(+v)?null:+v));
+const dateOf=d=>{if(!d)return null;if(typeof d==='string')return d.slice(0,10);if(d.year)return `${d.year}-${pad(d.month||1)}-${pad(d.day||1)}`;return null};
+function firstNum(o){
+  for(const[k,v]of Object.entries(o||{})){
+    if(k==='date')continue;
+    const n=numOf(v);if(n!=null)return n;
+    if(v&&typeof v==='object'&&!Array.isArray(v)){const m=firstNum(v);if(m!=null)return m}
+  }
+  return null;
+}
+const tempAt=n=>{const d=S.health.days[numKey(n)];return d&&d.temp!=null?d.temp:null};
+function devAt(n){
+  const d=S.health.days[numKey(n)];
+  if(!d||d.temp==null)return null;
+  if(d.base!=null)return d.temp-d.base;
+  const prev=[];for(let j=n-30;j<n;j++){const v=tempAt(j);if(v!=null)prev.push(v)}
+  if(prev.length<5)return null;
+  prev.sort((a,b)=>a-b);return d.temp-prev[Math.floor(prev.length/2)];
+}
+/* Ovulation from a sustained temperature rise: 3 nights all above the highest of the 6 before, averaging ≥0.2°C higher. Returns the first high night. */
+function detectShift(fromN,toN){
+  if(!S.health||!Object.keys(S.health.days).length)return null;
+  for(let n=fromN;n<=toN-2;n++){
+    const a=tempAt(n),b=tempAt(n+1),c=tempAt(n+2);
+    if(a==null||b==null||c==null)continue;
+    const prev=[];for(let j=n-6;j<n;j++){const v=tempAt(j);if(v!=null)prev.push(v)}
+    if(prev.length<4)continue;
+    const mx=Math.max(...prev),av=prev.reduce((x,y)=>x+y,0)/prev.length;
+    if(a>mx+0.05&&b>mx+0.05&&c>mx+0.05&&(a+b+c)/3-av>=0.2)return n;
+  }
+  return null;
+}
+const GH_DAILY=[
+  {type:'daily-sleep-temperature-derivations',key:'dailySleepTemperatureDerivations',map:(o,d)=>{d.temp=numOf(o.nightlyTemperatureCelsius);d.base=numOf(o.baselineTemperatureCelsius)}},
+  {type:'daily-resting-heart-rate',key:'dailyRestingHeartRate',map:(o,d)=>{d.rhr=numOf(o.beatsPerMinute)}},
+  {type:'daily-heart-rate-variability',key:'dailyHeartRateVariability',map:(o,d)=>{d.hrv=numOf(o.averageHeartRateVariabilityMilliseconds)??numOf(o.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds)}},
+  {type:'daily-respiratory-rate',key:'dailyRespiratoryRate',map:(o,d)=>{d.br=firstNum(o)}},
+  {type:'daily-oxygen-saturation',key:'dailyOxygenSaturation',map:(o,d)=>{d.spo2=firstNum(o)}}
+];
+function ghToken(){
+  try{const o=JSON.parse(localStorage.getItem(LS_GH)||'null');if(o&&o.exp>Date.now()+60000)return o.token}catch(e){}
+  return null;
+}
+function ghConnect(){
+  const st=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{localStorage.setItem(LS_GH+'-state',st)}catch(e){}
+  const q=new URLSearchParams({client_id:GH_CLIENT,redirect_uri:GH_REDIRECT,response_type:'token',scope:GH_SCOPES,include_granted_scopes:'true',state:st});
+  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q.toString();
+}
+function ghHandleRedirect(){
+  if(!location.hash||location.hash.length<2)return false;
+  const p=new URLSearchParams(location.hash.slice(1));
+  if(!p.get('access_token')&&!p.get('error'))return false;
+  history.replaceState(null,'',location.pathname+location.search);
+  let st=null;
+  try{st=localStorage.getItem(LS_GH+'-state');localStorage.removeItem(LS_GH+'-state')}catch(e){}
+  if(p.get('error')){S.ghMsg=p.get('error')==='access_denied'?'这次没有授权，随时可以再点「连接」。':'Google 登录没成功（'+p.get('error')+'）。';return true}
+  if(st&&p.get('state')!==st){S.ghMsg='登录校验没通过，请再点一次连接。';return true}
+  try{localStorage.setItem(LS_GH,JSON.stringify({token:p.get('access_token'),exp:Date.now()+Number(p.get('expires_in')||3600)*1000}))}catch(e){}
+  return true;
+}
+async function ghList(type,filter,pageSize,token){
+  const out=[];let tok='';
+  for(let i=0;i<40;i++){
+    const q=new URLSearchParams({filter,pageSize:String(pageSize)});
+    if(tok)q.set('pageToken',tok);
+    const r=await fetch(GH_API+type+'/dataPoints?'+q.toString(),{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){const txt=await r.text().catch(()=>'');const e=new Error(txt.slice(0,400));e.status=r.status;throw e}
+    const j=await r.json();
+    out.push(...(j.dataPoints||[]));
+    tok=j.nextPageToken;if(!tok)break;
+  }
+  return out;
+}
+let ghBusy=false;
+async function ghSync(){
+  if(ghBusy)return;
+  const token=ghToken();
+  if(!token){ghConnect();return}
+  ghBusy=true;S.ghMsg='正在从 Google Health 拉数据…';renderHealth();
+  const t=tn();
+  const from=S.health.lastSync?numKey(Math.min(dayNum(S.health.lastSync),t)-7):numKey(t-150);
+  const errs=[];let got=0;
+  for(const g of GH_DAILY){
+    try{
+      const pts=await ghList(g.type,`${g.key}.date >= "${from}"`,1000,token);
+      if(pts[0])console.log('[gh]',g.type,JSON.stringify(pts[0]).slice(0,400));
+      for(const p of pts){
+        const o=p[g.key];if(!o)continue;
+        const k=dateOf(o.date);if(!k)continue;
+        g.map(o,S.health.days[k]||(S.health.days[k]={}));got++;
+      }
+    }catch(e){
+      console.warn('[gh]',g.type,e.status,e.message);
+      if(e.status===401){try{localStorage.removeItem(LS_GH)}catch(_){}ghBusy=false;ghConnect();return}
+      errs.push(e);
+    }
+  }
+  try{
+    const pts=await ghList('sleep',`sleep.interval.civil_end_time >= "${from}"`,25,token);
+    if(pts[0])console.log('[gh] sleep',JSON.stringify(pts[0]).slice(0,400));
+    const sums={};
+    for(const p of pts){
+      const s=p.sleep;if(!s||!s.summary)continue;
+      const iv=s.interval||{};
+      const k=(iv.civilEndTime&&dateOf(iv.civilEndTime.date))||(iv.endTime?iv.endTime.slice(0,10):null);
+      if(!k)continue;
+      sums[k]=(sums[k]||0)+(numOf(s.summary.minutesAsleep)||0);got++;
+    }
+    for(const[k,m]of Object.entries(sums))(S.health.days[k]||(S.health.days[k]={})).sleep=m;
+  }catch(e){
+    console.warn('[gh] sleep',e.status,e.message);
+    if(e.status===401){try{localStorage.removeItem(LS_GH)}catch(_){}ghBusy=false;ghConnect();return}
+    errs.push(e);
+  }
+  ghBusy=false;
+  if(got||errs.length<6){S.health.lastSync=todayKey();S.health.syncedAt=Date.now()}
+  if(errs.length===6){
+    const st=errs[0].status;
+    S.ghMsg=st===403?'Google 拒绝了请求（403）。刚建好的设置可能要等一阵才生效，过几十分钟再点「同步」；也请确认 Google Health App 登录的是同一个账号。'
+      :st?`Google Health 返回错误（${st}），稍后再试。`:'连不上 Google Health，检查一下网络再点「同步」。';
+  }else S.ghMsg=errs.length?`同步完成，有 ${errs.length} 类数据没拉到。`:'';
+  save();renderAll();
+  if(!errs.length)toast(`同步好啦，拉到 ${got} 条`);
+}
+const fmtWhen=ts=>{const d=new Date(ts),k=keyOf(d.getFullYear(),d.getMonth(),d.getDate());return (k===todayKey()?'今天':fmtMD(k))+` ${pad(d.getHours())}:${pad(d.getMinutes())}`};
+function vitalsItems(k){
+  const d=S.health.days[k];if(!d)return[];
+  const out=[],dv=devAt(dayNum(k));
+  if(dv!=null)out.push(['🌡 皮肤温度 ',`${dv>=0?'+':''}${dv.toFixed(2)}°C`]);
+  if(d.rhr!=null)out.push(['❤️ 静息心率 ',`${Math.round(d.rhr)}`,' 次/分']);
+  if(d.hrv!=null)out.push(['💗 HRV ',`${Math.round(d.hrv)}`,' ms']);
+  if(d.br!=null)out.push(['🌬 呼吸 ',`${d.br.toFixed(1)}`,' 次/分']);
+  if(d.spo2!=null)out.push(['🫧 血氧 ',`${d.spo2.toFixed(0)}`,'%']);
+  if(d.sleep)out.push(['😴 睡眠 ',`${Math.floor(d.sleep/60)}h${pad(Math.round(d.sleep%60))}m`]);
+  return out.map(([a,b,c])=>h('span',null,a,h('b',null,b),c||''));
+}
+function renderHealth(){
+  const n=Object.keys(S.health.days).length;
+  $('#ghBtn').textContent=(n||S.health.lastSync)?'同步':'连接 Google Health';
+  $('#ghBtn').disabled=ghBusy;
+  $('#ghStatus').textContent=S.ghMsg||(S.health.syncedAt?`已同步 · ${fmtWhen(S.health.syncedAt)} · 共 ${n} 天数据。授权过期时点「同步」会让你重新登录一下。`
+    :'连上以后，会把 Fitbit 记录的夜间皮肤温度、静息心率、HRV 和睡眠拉进来。数据只存在这台手机里。');
+  $('#ghBody').hidden=!n;
+  if(!n)return;
+  renderTempChart();
+  const ins=$('#ghInsight'),cur=S.segs.find(s=>s.kind==='current');
+  const past=S.segs.filter(s=>s.kind==='past'&&s.tempOv!=null);
+  const lines=[];
+  if(cur&&cur.tempOv!=null)lines.push(`体温从 ${fmtMD(numKey(cur.tempOv+1))} 开始抬高，排卵大概在 ${fmtMD(numKey(cur.tempOv))}，下次例假已经按体温重新推算。`);
+  if(past.length){const L=past.map(s=>s.nextN-s.tempOv);lines.push(`按体温算，你过去 ${past.length} 个周期的黄体期平均 ${(L.reduce((a,b)=>a+b,0)/L.length).toFixed(1)} 天（设置里是 ${CS().luteal} 天）。`)}
+  ins.textContent=lines.join(' ');ins.hidden=!lines.length;
+  const keys=Object.keys(S.health.days).filter(k=>k<=todayKey()).sort();
+  const last=keys[keys.length-1];
+  $('#ghVitals').replaceChildren(...(last?[h('span',{style:'width:100%;color:var(--muted);font-size:13px'},`最近一晚（${fmtShort(last)}）`),...vitalsItems(last)]:[]));
+}
+const BAND={period:'var(--ph-period-bg)',follicular:null,fertile:'var(--ph-fertile)',ovulation:'var(--ph-ov)',luteal:'var(--ph-luteal)',pms:'var(--ph-pms)'};
+function renderTempChart(){
+  const box=$('#tempChart'),t=tn(),N=60,start=t-N+1;
+  const pts=[];for(let i=0;i<N;i++){const v=devAt(start+i);if(v!=null)pts.push({i,v})}
+  if(!pts.length){box.replaceChildren(h('p',{class:'hint'},'最近 60 天还没有皮肤温度数据。'));return}
+  const W=340,H=170,ml=36,mr=8,mt=10,mb=22,pw=W-ml-mr,ph=H-mt-mb;
+  let lo=Math.min(-0.4,...pts.map(p=>p.v)),hi=Math.max(0.4,...pts.map(p=>p.v));
+  lo=Math.floor(lo*5-1e-9)/5;hi=Math.ceil(hi*5+1e-9)/5;
+  const step=(hi-lo)>1.2?0.4:0.2;
+  const x=i=>ml+(i+0.5)*pw/N,y=v=>mt+(hi-v)/(hi-lo)*ph;
+  const NS='http://www.w3.org/2000/svg';
+  const mk=(tag,a,txt)=>{const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(a))e.setAttribute(k,v);if(txt!=null)e.textContent=txt;return e};
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'最近 60 天夜间皮肤温度和平时的差值'});
+  for(let i=0;i<N;i++){
+    const p=phaseAt(start+i),c=p?BAND[p.key]:null;
+    if(c)svg.append(mk('rect',{x:ml+i*pw/N,y:mt,width:pw/N+0.4,height:ph,fill:c}));
+  }
+  for(let v=Math.ceil(lo/step-1e-9)*step;v<=hi+1e-9;v+=step){
+    const yy=y(v),zero=Math.abs(v)<1e-6;
+    svg.append(mk('line',{x1:ml,x2:W-mr,y1:yy,y2:yy,stroke:zero?'var(--muted)':'var(--line)','stroke-width':zero?1:0.8,'stroke-dasharray':zero?'3 3':''}));
+    svg.append(mk('text',{x:ml-5,y:yy+3.5,'text-anchor':'end','font-size':10,fill:'var(--muted)'},(v>0.001?'+':'')+(zero?'0':v.toFixed(1))+'°'));
+  }
+  for(let i=N-1;i>=0;i-=14)svg.append(mk('text',{x:i===N-1?W-mr:x(i),y:H-6,'text-anchor':i===N-1?'end':'middle','font-size':10,fill:'var(--muted)'},fmtMD(numKey(start+i))));
+  let d='',prev=null;
+  for(const p of pts){d+=(prev!=null&&p.i-prev<=2?'L':'M')+x(p.i).toFixed(1)+' '+y(p.v).toFixed(1);prev=p.i}
+  svg.append(mk('path',{d,fill:'none',stroke:'var(--pink-deep)','stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+  for(const s of S.segs){
+    if(s.tempOv==null)continue;const i=s.tempOv+1-start;
+    if(i<0||i>=N)continue;const v=devAt(s.tempOv+1);if(v==null)continue;
+    svg.append(mk('circle',{cx:x(i),cy:y(v),r:4.5,fill:'var(--ph-ov-ink)',stroke:'#fff','stroke-width':2}));
+  }
+  const lp=pts[pts.length-1];
+  svg.append(mk('circle',{cx:x(lp.i),cy:y(lp.v),r:3.5,fill:'var(--pink-deep)',stroke:'#fff','stroke-width':1.5}));
+  const cross=mk('line',{x1:0,x2:0,y1:mt,y2:mt+ph,stroke:'var(--ink)','stroke-width':1,opacity:0});
+  const dot=mk('circle',{cx:0,cy:0,r:4,fill:'var(--pink-deep)',stroke:'#fff','stroke-width':2,opacity:0});
+  svg.append(cross,dot);
+  const tip=h('div',{class:'tip',hidden:true});
+  const move=ev=>{
+    const r=svg.getBoundingClientRect(),sx=W/r.width;
+    const px=(ev.clientX-r.left)*sx;
+    const i=Math.max(0,Math.min(N-1,Math.floor((px-ml)/(pw/N))));
+    const n=start+i,k=numKey(n),v=devAt(n),p=phaseAt(n),hd=S.health.days[k]||{};
+    cross.setAttribute('x1',x(i));cross.setAttribute('x2',x(i));cross.setAttribute('opacity',0.35);
+    if(v!=null){dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(v));dot.setAttribute('opacity',1)}else dot.setAttribute('opacity',0);
+    tip.replaceChildren(h('div',null,`${fmtShort(k)}${p?' · '+PHASE[p.key].n:''}`),
+      h('div',null,v!=null?`皮肤温度 ${v>=0?'+':''}${v.toFixed(2)}°C`:'这晚没有温度数据'),
+      hd.rhr!=null?h('div',null,`静息心率 ${Math.round(hd.rhr)}`):null);
+    tip.hidden=false;
+    const left=x(i)/sx,top=(v!=null?y(v):mt+ph/2)/sx;
+    tip.style.left=Math.max(70,Math.min(r.width-70,left))+'px';tip.style.top=top+'px';
+  };
+  const hide=()=>{tip.hidden=true;cross.setAttribute('opacity',0);dot.setAttribute('opacity',0)};
+  svg.addEventListener('pointermove',move);
+  svg.addEventListener('pointerdown',move);
+  svg.addEventListener('pointerleave',hide);
+  box.replaceChildren(svg,tip);
+}
+$('#ghBtn').addEventListener('click',()=>ghSync());
 
 /* ================= 护肤 render ================= */
 const tagById=id=>S.tags.find(t=>t.id===id);
@@ -789,7 +1046,9 @@ function renderCycleHero(){
         const left=cur.nextN-t;
         items.push(li('var(--ph-period)','下次例假约 ',h('b',null,fmtMD(numKey(cur.nextN))),`（${fmtMD(numKey(cur.minNext))}–${fmtMD(numKey(cur.maxNext))} 之间）`,left>0?`，还有 ${left} 天`:''));
       }
-      if(t<=cur.ovMax){
+      if(cur.tempOv!=null){
+        items.push(li(PHASE.ovulation.c,'按体温判断已经排卵，大约在 ',h('b',null,fmtMD(numKey(cur.tempOv)))));
+      }else if(t<=cur.ovMax){
         items.push(li(PHASE.ovulation.c,'排卵期约 ',h('b',null,cur.ovMin===cur.ovMax?fmtMD(numKey(cur.ovMin)):`${fmtMD(numKey(cur.ovMin))}–${fmtMD(numKey(cur.ovMax))}`)));
       }
       const pmsStart=cur.nextN-CS().pms;
@@ -910,6 +1169,8 @@ function renderCycleSheet(){
   const k=S.openCDate;if(!k)return;
   const d=S.cycle.days[k]||{};
   $('#cPhase').textContent=phaseLine(k);
+  const vi=vitalsItems(k);
+  $('#cVitals').replaceChildren(...vi);$('#cVitals').hidden=!vi.length;
   $('#flowChips').replaceChildren(...FLOW.map(f=>{
     const on=d.flow===f.k;
     return h('button',{type:'button',class:'chip plain flow'+(on?' on':''),'aria-pressed':on?'true':'false',onclick:()=>updateC(k,x=>{x.flow=on?'':f.k})},f.n);
@@ -927,7 +1188,7 @@ function renderCycleSheet(){
 }
 function renderCycle(){
   S.segs=buildSegs();
-  renderCycleHero();renderCGrid();renderPatterns();renderHistory();renderSettings();renderCycleSheet();
+  renderCycleHero();renderHealth();renderCGrid();renderPatterns();renderHistory();renderSettings();renderCycleSheet();
 }
 function renderAll(){
   S.segs=buildSegs();
@@ -1034,7 +1295,7 @@ $('#tagDelete').addEventListener('click',()=>{
 /* ================= backup ================= */
 $('#exportBtn').addEventListener('click',async()=>{
   const tk=todayKey();
-  const json=JSON.stringify({app:'skin-diary',v:2,exportedAt:new Date().toISOString(),tags:S.tags,days:S.days,cycle:S.cycle},null,1);
+  const json=JSON.stringify({app:'skin-diary',v:2,exportedAt:new Date().toISOString(),tags:S.tags,days:S.days,cycle:S.cycle,health:S.health},null,1);
   const name=`护肤日历备份-${tk}.json`;
   const file=new File([json],name,{type:'application/json'});
   const mark=()=>{S.backupAt=tk;save();renderData()};
@@ -1063,7 +1324,7 @@ $('#importFile').addEventListener('change',async e=>{
 });
 $('#importYes').addEventListener('click',()=>{
   const o=S.pendingImport;if(!o)return;
-  S.tags=o.tags;S.days=o.days;S.cycle=normCycle(o.cycle);S.pendingImport=null;save();
+  S.tags=o.tags;S.days=o.days;S.cycle=normCycle(o.cycle);if(o.health)S.health=normHealth(o.health);S.pendingImport=null;save();
   $('#importConfirm').hidden=true;renderAll();toast('恢复好啦');
 });
 $('#importNo').addEventListener('click',()=>{S.pendingImport=null;$('#importConfirm').hidden=true});
@@ -1129,7 +1390,11 @@ swipe($('#cgrid'),shiftCMonth);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});
 
 /* ================= start ================= */
-load();setTab(S.tab);
+load();
+const ghBack=ghHandleRedirect();
+if(ghBack)S.tab='cycle';
+setTab(S.tab);
+if(ghBack&&ghToken())ghSync();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
