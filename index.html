@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=ZCOOL+KuaiLe&display=swap">
 <style>
-/* Layout: one phone column of soft cards with a bottom tab bar — 护肤 tab (mascot, month card, rhythm cards) and 经期 tab (cycle ring, phase calendar, patterns, history, settings). Single pastel-pink look by choice. */
+/* Layout: one phone column of soft cards — mascot hero, month card (top row = morning, bottom row = night), rhythm cards, backup card. Single pastel-pink look by choice. */
 :root{
   --bg:#FFF4F7;
   --dot:#FFE0E8;
@@ -28,17 +28,8 @@
   --pink-soft:#FFE4EC;
   --line:#F7DCE4;
   --peach:#FFEDE1;
+  --mint:#DFF5EA;
   --shadow:0 6px 18px rgba(232,95,134,.12);
-  /* cycle phases */
-  --ph-period:#FF7F98;
-  --ph-period-bg:#FFE1E7;
-  --ph-foll:#FFF8FA;
-  --ph-fertile:#E2F6EE;
-  --ph-ov:#BFEBDA;
-  --ph-ov-ink:#2F9C7A;
-  --ph-luteal:#F2ECFF;
-  --ph-pms:#E3D7FF;
-  --ph-pms-ink:#7B5CD6;
   --font-cute:"ZCOOL KuaiLe","Fredoka","PingFang SC",-apple-system,sans-serif;
   --font-num:"Fredoka","PingFang SC",-apple-system,system-ui,sans-serif;
   --font-ui:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
@@ -52,7 +43,7 @@ body{
   background:var(--bg) radial-gradient(var(--dot) 1.6px,transparent 1.8px) 0 0/22px 22px;
   min-height:100vh;
   padding-top:calc(env(safe-area-inset-top,0px) + 14px);
-  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 100px);
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 36px);
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
   -webkit-tap-highlight-color:transparent;
@@ -61,10 +52,8 @@ body{
 body.locked{overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 :focus-visible{outline:3px solid var(--pink);outline-offset:2px}
-.wrap,main{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-.wrap{gap:18px}
+.wrap{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 .card{background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:16px 12px}
-.pad{padding:16px}
 h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-spacing:.02em}
 
 /* hero */
@@ -82,7 +71,7 @@ h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-s
   @keyframes bob{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(.98,1.02)}}
 }
 
-/* calendars */
+/* calendar */
 .cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 10px}
 .month{display:flex;align-items:center;gap:6px}
 .month h2{min-width:6.6em;text-align:center;font-family:var(--font-num);font-weight:600;font-size:21px;font-variant-numeric:tabular-nums}
@@ -107,27 +96,6 @@ h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-s
 .mini{font-style:normal;display:inline-grid;place-items:center;height:19px;min-width:18px;padding:0 2px;border-radius:6px;font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;line-height:1}
 .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;margin:12px 0 0;font-size:13px;color:var(--muted)}
 
-/* cycle calendar cells */
-.ccell{min-height:66px;align-items:flex-start}
-.ccell.k-follicular{background:var(--ph-foll)}
-.ccell.k-fertile{background:var(--ph-fertile)}
-.ccell.k-ovulation{background:var(--ph-ov)}
-.ccell.k-luteal{background:var(--ph-luteal)}
-.ccell.k-pms{background:var(--ph-pms)}
-.ccell.k-none{background:#FFF8FA}
-.ccell.p-pred{background:var(--card);box-shadow:inset 0 0 0 2px var(--ph-period);background-image:none}
-.ccell.p-pred{outline:0;border:2px dashed var(--ph-period);box-shadow:none;padding:2px 0 3px}
-.ccell.p-logged{background:var(--ph-period-bg)}
-.ccell.p-logged .dnum{background:var(--ph-period);color:#fff;font-weight:600}
-.ccell.today .dnum{box-shadow:0 0 0 2px var(--ink)}
-.ccell.spot::before{content:"";position:absolute;left:6px;bottom:6px;width:7px;height:7px;border-radius:50%;background:var(--ph-period)}
-.ov-mark{position:absolute;top:3px;right:4px;font-size:13px;line-height:1;color:var(--ph-ov-ink)}
-.cmid{display:flex;align-items:center;gap:2px;flex-wrap:wrap;padding-left:2px}
-.feel-e{font-size:14px;line-height:1}
-.cnt{font-style:normal;font-size:11px;font-weight:700;line-height:17px;height:17px;padding:0 5px;border-radius:6px;background:#fff;color:var(--ph-pms-ink);box-shadow:inset 0 0 0 1px #DCCEFF}
-.lg{display:inline-flex;align-items:center;gap:5px}
-.lg i{display:inline-block;width:14px;height:14px;border-radius:5px}
-
 /* rhythm */
 .sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px;margin-bottom:10px}
 .alert{display:flex;gap:8px;align-items:flex-start;background:var(--peach);color:#8A4A22;border-radius:18px;padding:11px 14px;font-size:15px;margin-bottom:10px}
@@ -143,58 +111,11 @@ h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-s
 .empty{text-align:center;padding:18px 10px;display:flex;flex-direction:column;gap:12px;align-items:center}
 .empty p{margin:0;color:var(--muted)}
 
-/* cycle hero */
-.cyc-hero{display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:18px 16px}
-.ring-wrap{position:relative;width:150px;height:150px;flex:none;margin:0 auto}
-.ring-wrap svg{width:100%;height:100%;display:block}
-.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15}
-.ring-center small{font-size:13px;color:var(--muted)}
-.ring-center b{font-family:var(--font-num);font-size:40px;font-weight:600;font-variant-numeric:tabular-nums}
-.ring-center span{font-family:var(--font-cute);font-size:17px;color:var(--pink-deep);margin-top:2px}
-.cyc-info{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:10px}
-.phase-desc{margin:0;font-size:15px;color:var(--ink);background:var(--pink-soft);border-radius:16px;padding:10px 12px}
-.facts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:15px}
-.facts li{display:flex;gap:8px;align-items:baseline}
-.facts .dot{flex:none;width:10px;height:10px;border-radius:50%;transform:translateY(1px)}
-.facts b{font-family:var(--font-num);font-weight:600}
-
-/* patterns, history, settings */
-.feel-rows,.pat-rows,.hist-rows{display:flex;flex-direction:column}
-.frow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
-.frow:last-child{border-bottom:0}
-.ph-dot{width:12px;height:12px;border-radius:50%}
-.meter{display:inline-flex;gap:3px;vertical-align:middle;margin-left:6px}
-.meter i{width:9px;height:9px;border-radius:50%;background:var(--line)}
-.meter i.on{background:var(--pink)}
-.frow .val{font-family:var(--font-num);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
-.frow .sub{font-size:13px;color:var(--muted)}
-.prow{padding:10px 2px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.prow:last-child{border-bottom:0}
-.prow b{font-weight:700}
-.prow span{font-size:14px;color:var(--muted);text-align:right}
-.sub-title{font-size:15px;font-weight:700;margin:14px 0 4px}
-.sub-title:first-child{margin-top:4px}
-.hint{font-size:14px;color:var(--muted);margin:2px 0 0}
-.avg-box{margin-top:10px;padding:12px;border-radius:16px;background:var(--pink-soft);font-size:15px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
-.set-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
-.set-row:last-of-type{border-bottom:0}
-.set-row .lbl{font-weight:600}
-.set-row .desc{font-size:13px;color:var(--muted);line-height:1.4}
-.stepper{display:flex;align-items:center;gap:6px}
-.stepper output{min-width:2.2em;text-align:center;font-family:var(--font-num);font-weight:600;font-size:20px;font-variant-numeric:tabular-nums}
-.note-box{margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.6;background:#FFF8FA;border-radius:14px;padding:10px 12px}
-
 /* data card */
+.data{padding:16px}
 .data p{margin:8px 0 12px;font-size:15px;color:var(--muted)}
 .row{display:flex;flex-wrap:wrap;gap:8px}
 .confirm{margin-top:12px;padding:12px;border-radius:16px;background:var(--pink-soft);font-size:15px;display:flex;flex-direction:column;gap:10px}
-
-/* tab bar */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;gap:10px;
-  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
-  background:rgba(255,255,255,.94);box-shadow:0 -4px 18px rgba(232,95,134,.12);border-radius:24px 24px 0 0}
-.tab{flex:1;max-width:200px;min-height:46px;border:0;border-radius:999px;background:transparent;font-size:16px;font-weight:700;color:var(--muted)}
-.tab[aria-selected="true"]{background:var(--pink-soft);color:var(--pink-deep)}
 
 /* sheets */
 .scrim{position:fixed;inset:0;background:rgba(75,53,65,.32);z-index:20}
@@ -209,29 +130,20 @@ h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-s
 .sheet-head{position:sticky;top:0;background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:20px 0 10px;z-index:1}
 .sheet-head::before{content:"";position:absolute;top:8px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:var(--line)}
 .sheet-head h2{font-size:22px}
-.sheet-head .sub{font-size:14px;color:var(--muted);margin-top:2px}
 .sheet-body{display:flex;flex-direction:column;gap:8px}
 .sheet h3{font-size:16px;font-weight:700;margin:12px 0 2px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:44px;padding:0 16px 0 12px;border-radius:999px;border:2px solid var(--c,var(--line));background:var(--card);font-size:16px;display:inline-flex;align-items:center;gap:6px;transition:transform .12s}
-.chip.plain{padding:0 16px}
 .chip .ic{font-size:18px;line-height:1}
 .chip.on{background:var(--c);font-weight:700}
 .chip.on::after{content:"✓";font-weight:800;color:var(--pink-deep);margin-left:2px}
 .chip:active{transform:scale(.94)}
 .chip.skin{--c:#FFD2B8}
 .chip.skin.good{--c:#BEEBD3}
-.chip.flow{--c:#FFB3C1}
-.chip.feel{--c:#FFD6E0}
-.chip.sym{--c:#FFCBD8}
-.chip.mood{--c:#DCCEFF}
-.chip.del{border-color:#F3B5B5;color:#C24848;background:#FFF5F5}
-.chip.del.armed{background:#E05757;border-color:#E05757;color:#fff}
 textarea,input[type=text]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#FFF8FA;border:2px solid var(--line);border-radius:16px;padding:11px 13px}
 textarea{resize:vertical;min-height:88px}
 textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
-.add-row{display:flex;gap:8px}
-.add-row input{flex:1;min-width:0;padding:8px 12px}
+.hint{font-size:14px;color:var(--muted);margin:2px 0 0}
 
 .tag-list{display:flex;flex-direction:column;gap:6px}
 .tag-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 10px;border:0;border-radius:16px;background:#FFF8FA;text-align:left}
@@ -251,7 +163,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
 .btn-danger{background:#FFF0F0;color:#C24848}
 .btn-danger.armed{background:#E05757;color:#fff}
 
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:15px;max-width:calc(100% - 32px);text-align:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:15px;max-width:calc(100% - 32px);text-align:center}
 @media (prefers-reduced-motion:no-preference){
   .sheet:not([hidden]){animation:up .25s cubic-bezier(.2,.9,.3,1.2)}
   @keyframes up{from{transform:translate(-50%,30px);opacity:.3}to{transform:translate(-50%,0);opacity:1}}
@@ -262,7 +174,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
 <div class="wrap">
   <header class="hero">
     <div class="hero-text">
-      <h1 id="appTitle">护肤日历</h1>
+      <h1>护肤日历</h1>
       <p id="bubble" class="bubble">今天打卡了吗？</p>
     </div>
     <button id="mascot" class="mascot" type="button" aria-label="打开今天">
@@ -280,7 +192,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
           <path d="M44 80 Q50 86 56 80"/>
         </g>
         <g class="tired">
-          <g fill="none" stroke="#4B3541" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+          <g fill="none" stroke="#4B3541" stroke-width="3.2" stroke-linecap="round">
             <path d="M34 65 L42 69.5 L34 74"/><path d="M66 65 L58 69.5 L66 74"/>
             <path d="M44 84 Q47 80 50 84 Q53 88 56 84"/>
           </g>
@@ -290,91 +202,27 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
     </button>
   </header>
 
-  <!-- ============ 护肤 ============ -->
-  <main id="tab-skin">
-    <section class="card" aria-label="护肤日历">
-      <div class="cal-head">
-        <div class="month">
-          <button id="prev" class="round" type="button" aria-label="上个月">‹</button>
-          <h2 id="monthLabel">—</h2>
-          <button id="next" class="round" type="button" aria-label="下个月">›</button>
-        </div>
-        <button id="todayBtn" class="pill" type="button">今天</button>
+  <section class="card" aria-label="日历">
+    <div class="cal-head">
+      <div class="month">
+        <button id="prev" class="round" type="button" aria-label="上个月">‹</button>
+        <h2 id="monthLabel">—</h2>
+        <button id="next" class="round" type="button" aria-label="下个月">›</button>
       </div>
-      <div class="dow"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
-      <div id="grid" class="grid"></div>
-      <div class="legend"><span>☀️ 上排是早上</span><span>🌙 下排是晚上</span><span>🩹 皮肤有状况</span></div>
-    </section>
+      <button id="todayBtn" class="pill" type="button">今天</button>
+    </div>
+    <div class="dow"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    <div id="grid" class="grid"></div>
+    <div class="legend"><span>☀️ 上排是早上</span><span>🌙 下排是晚上</span><span>🩹 皮肤有状况</span></div>
+  </section>
 
-    <section aria-label="护肤节奏">
-      <div class="sec-head"><h2>护肤节奏</h2><button id="tagsBtn" class="pill solid" type="button">管理标签</button></div>
-      <div id="skinAlert" class="alert" hidden></div>
-      <div id="stats" class="stats"></div>
-    </section>
-  </main>
+  <section aria-label="节奏">
+    <div class="sec-head"><h2>护肤节奏</h2><button id="tagsBtn" class="pill solid" type="button">管理标签</button></div>
+    <div id="skinAlert" class="alert" hidden></div>
+    <div id="stats" class="stats"></div>
+  </section>
 
-  <!-- ============ 经期 ============ -->
-  <main id="tab-cycle" hidden>
-    <section class="card cyc-hero" aria-label="当前周期">
-      <div class="ring-wrap">
-        <svg id="ring" viewBox="0 0 100 100" aria-hidden="true"></svg>
-        <div class="ring-center"><small id="ringTop">周期</small><b id="ringDay">—</b><span id="ringPhase"></span></div>
-      </div>
-      <div class="cyc-info">
-        <p id="phaseDesc" class="phase-desc"></p>
-        <ul id="cycFacts" class="facts"></ul>
-        <div class="row">
-          <button id="periodBtn" class="pill solid" type="button">例假来了</button>
-          <button id="logTodayBtn" class="pill" type="button">记录今天</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="card" aria-label="经期日历">
-      <div class="cal-head">
-        <div class="month">
-          <button id="cprev" class="round" type="button" aria-label="上个月">‹</button>
-          <h2 id="cmonthLabel">—</h2>
-          <button id="cnext" class="round" type="button" aria-label="下个月">›</button>
-        </div>
-        <button id="ctodayBtn" class="pill" type="button">今天</button>
-      </div>
-      <div class="dow"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
-      <div id="cgrid" class="grid"></div>
-      <div class="legend">
-        <span class="lg"><i style="background:var(--ph-period)"></i>经期</span>
-        <span class="lg"><i style="border:2px dashed var(--ph-period)"></i>预计经期</span>
-        <span class="lg"><i style="background:var(--ph-ov)"></i>✿ 排卵期</span>
-        <span class="lg"><i style="background:var(--ph-fertile)"></i>易孕期</span>
-        <span class="lg"><i style="background:var(--ph-luteal)"></i>黄体期</span>
-        <span class="lg"><i style="background:var(--ph-pms)"></i>经前期</span>
-      </div>
-    </section>
-
-    <section aria-label="我的规律">
-      <div class="sec-head"><h2>我的规律</h2></div>
-      <div class="card pad">
-        <div class="sub-title">各阶段的难受程度</div>
-        <div id="feelRows" class="feel-rows"></div>
-        <div class="sub-title">症状通常什么时候出现</div>
-        <div id="patRows" class="pat-rows"></div>
-      </div>
-    </section>
-
-    <section class="card pad" aria-label="周期记录">
-      <h2>周期记录</h2>
-      <div id="histRows" class="hist-rows" style="margin-top:8px"></div>
-      <div id="avgBox" class="avg-box" hidden></div>
-    </section>
-
-    <section class="card pad" aria-label="周期设置">
-      <h2>周期设置</h2>
-      <div id="settings" style="margin-top:6px"></div>
-      <p class="note-box">怎么算的：黄体期长度比较固定（一般 12–14 天），所以排卵日按「下次例假往前数黄体期天数」推算；易孕期是排卵前 5 天到排卵后 1 天。你的周期在最短和最长之间浮动，所以排卵期会标成一段范围。这些都是按日历推算的估计，不能用来避孕。</p>
-    </section>
-  </main>
-
-  <section class="card data pad" aria-label="我的数据">
+  <section class="card data" aria-label="我的数据">
     <h2>我的数据</h2>
     <p id="dataNote">记录只存在这台手机里。换手机或清理 Safari 前，记得先导出备份。</p>
     <div class="row">
@@ -392,36 +240,16 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
   </section>
 </div>
 
-<nav class="tabs" role="tablist" aria-label="切换">
-  <button class="tab" role="tab" data-tab="skin" type="button">🧴 护肤</button>
-  <button class="tab" role="tab" data-tab="cycle" type="button">🌸 经期</button>
-</nav>
-
 <div id="scrim" class="scrim" hidden></div>
 
 <section id="daySheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="dayTitle">
-  <div class="sheet-head"><div><h2 id="dayTitle"></h2><div id="dayPhase" class="sub"></div></div><button id="dayClose" class="pill solid" type="button">完成</button></div>
+  <div class="sheet-head"><h2 id="dayTitle"></h2><button id="dayClose" class="pill solid" type="button">完成</button></div>
   <div class="sheet-body">
     <h3>☀️ 早上</h3><div id="amTags" class="chips"></div>
     <h3>🌙 晚上</h3><div id="pmTags" class="chips"></div>
     <h3>皮肤今天怎么样</h3><div id="skinChips" class="chips"></div>
     <h3>备注</h3>
     <textarea id="note" rows="3" placeholder="比如：鼻翼有点脱皮，今晚停 A 酸"></textarea>
-    <p class="hint">点一下就记上了，会自动保存。</p>
-  </div>
-</section>
-
-<section id="cycleSheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="cTitle">
-  <div class="sheet-head"><div><h2 id="cTitle"></h2><div id="cPhase" class="sub"></div></div><button id="cClose" class="pill solid" type="button">完成</button></div>
-  <div class="sheet-body">
-    <h3>🩸 例假</h3><div id="flowChips" class="chips"></div>
-    <h3>整体感觉</h3><div id="feelChips" class="chips"></div>
-    <h3>身体</h3><div id="symChips" class="chips"></div>
-    <div class="add-row"><input id="symNew" type="text" maxlength="10" placeholder="没有的症状自己加"><button id="symAdd" class="pill" type="button">添加</button></div>
-    <div class="row"><button id="symManage" class="pill" type="button" hidden>删除自定义症状</button></div>
-    <h3>情绪</h3><div id="moodChips" class="chips"></div>
-    <h3>备注</h3>
-    <textarea id="cnote" rows="3" placeholder="比如：下午开始浑身酸，像要感冒"></textarea>
     <p class="hint">点一下就记上了，会自动保存。</p>
   </div>
 </section>
@@ -450,7 +278,6 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
 <div id="toast" class="toast" hidden role="status"></div>
 
 <script>
-/* ================= constants ================= */
 const PALETTE=['#FFC2D4','#D9C7FF','#BFE9D6','#BFDDFF','#FFD6B5','#FFE79A','#FFB8B8','#EBC4F2','#D3E8B5','#E9D8C6'];
 const EMOJIS=['🧪','🫧','💧','🌙','☀️','🍋','🍑','🌿','🧴','🎭','🛁','😴','☁️','💜','⭐','🌸'];
 const DEFAULT_TAGS=[
@@ -463,39 +290,30 @@ const SKIN=[
   {k:'ok',n:'稳定',e:'✨',bad:false},{k:'dry',n:'干燥',e:'🌵',bad:true},{k:'peel',n:'脱皮',e:'🍂',bad:true},
   {k:'red',n:'泛红',e:'🍓',bad:true},{k:'sting',n:'刺痛',e:'⚡',bad:true},{k:'acne',n:'爆痘',e:'😣',bad:true}
 ];
-const FLOW=[{k:'spot',n:'点滴出血'},{k:'light',n:'少量'},{k:'medium',n:'中等'},{k:'heavy',n:'量多'}];
-const FEEL=[{v:0,n:'舒服',e:'😌'},{v:1,n:'有点不舒服',e:'😕'},{v:2,n:'难受',e:'😣'},{v:3,n:'很难受',e:'😫'}];
-const SYM=[['cramps','痛经'],['back','腰酸'],['head','头痛'],['breast','乳房胀痛'],['bloat','腹胀'],['ache','浑身酸痛'],['tired','疲惫'],['insomnia','失眠'],['sleepy','嗜睡'],['swell','水肿'],['nausea','恶心'],['acne','爆痘'],['oily','出油'],['dryskin','皮肤干'],['crave','食欲大增'],['cold','怕冷'],['hot','潮热']].map(([k,n])=>({k,n}));
-const MOOD=[['irritable','烦躁'],['low','情绪低落'],['anxious','焦虑'],['teary','想哭'],['sensitive','敏感易怒'],['calm','平静'],['happy','开心']].map(([k,n])=>({k:'m_'+k,n}));
-const PHASE={
-  period:{n:'经期',c:'var(--ph-period)',d:'雌激素和孕激素都在低位，子宫内膜脱落。多休息、注意保暖，皮肤可能偏敏感。'},
-  follicular:{n:'卵泡期',c:'#FFC6D3',d:'雌激素慢慢升高，很多人这几天精力和皮肤状态最好，适合按正常节奏用酸。'},
-  fertile:{n:'易孕期',c:'#9FE0C9',d:'快到排卵了，雌激素接近高峰。这是按日历推算的易孕窗口。'},
-  ovulation:{n:'排卵期',c:'#5CC9A7',d:'雌激素到高峰，LH 激增后约 1–1.5 天排卵。有人会有轻微小腹痛或分泌物变多。'},
-  luteal:{n:'黄体期',c:'#C9B6FF',d:'排卵后孕激素升高，基础体温会上升约 0.3–0.5°C，皮肤更容易出油长痘。'},
-  pms:{n:'经前期',c:'#A88BF0',d:'例假前雌激素和孕激素一起往下掉，激素敏感的人容易浑身难受、情绪起伏，这是经前不适（PMS）常见的时间段。'}
-};
-const GROUPS=[['period','经期'],['follicular','卵泡期'],['ovulation','排卵期前后'],['luteal','黄体期'],['pms','经前期']];
-const DEFAULT_CYCLE={minLen:25,maxLen:28,periodLen:5,luteal:14,pms:7};
 const WD=['日','一','二','三','四','五','六'];
-const LS='skin-diary-v1',LS_TAB='skin-diary-tab';
+const LS='skin-diary-v1';
 
-/* ================= helpers ================= */
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
 const keyOf=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
 const todayKey=()=>{const t=new Date();return keyOf(t.getFullYear(),t.getMonth(),t.getDate())};
 const parseKey=k=>{const[y,m,d]=k.split('-').map(Number);return{y,m:m-1,d}};
 const dayNum=k=>{const p=parseKey(k);return Date.UTC(p.y,p.m,p.d)/86400000};
-const numKey=n=>{const d=new Date(n*86400000);return keyOf(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())};
 const dowOf=k=>{const p=parseKey(k);return new Date(p.y,p.m,p.d).getDay()};
 const fmtShort=k=>{const p=parseKey(k);return `${p.m+1}/${p.d} 周${WD[dowOf(k)]}`};
-const fmtMD=k=>{const p=parseKey(k);return `${p.m+1}/${p.d}`};
 const fmtLong=k=>{const p=parseKey(k);return `${p.m+1}月${p.d}日 周${WD[dowOf(k)]}`+(k===todayKey()?' · 今天':'')};
 const clone=o=>JSON.parse(JSON.stringify(o));
 const firstChar=s=>Array.from(s.trim())[0]||'?';
 const iconOf=t=>t.icon||firstChar(t.name);
-const tn=()=>dayNum(todayKey());
+
+const now=new Date();
+const S={tags:[],days:{},backupAt:null,y:now.getFullYear(),m:now.getMonth(),openDate:null,editTagId:null,color:PALETTE[0],icon:'',pendingImport:null};
+
+const tagById=id=>S.tags.find(t=>t.id===id);
+const blankDay=()=>({am:[],pm:[],skin:[],note:''});
+const getDay=k=>S.days[k]||blankDay();
+const isEmptyDay=d=>!((d.am&&d.am.length)||(d.pm&&d.pm.length)||(d.skin&&d.skin.length)||(d.note||'').trim());
+const badStates=d=>SKIN.filter(x=>x.bad&&(d.skin||[]).includes(x.k));
 
 function h(tag,attrs,...kids){
   const el=document.createElement(tag);
@@ -512,96 +330,21 @@ function h(tag,attrs,...kids){
 let toastTimer=0;
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,2400)}
 
-/* ================= state & storage ================= */
-const now=new Date();
-const S={
-  tags:[],days:{},backupAt:null,
-  cycle:{settings:clone(DEFAULT_CYCLE),days:{},customSym:[]},
-  tab:'skin',y:now.getFullYear(),m:now.getMonth(),cy:now.getFullYear(),cm:now.getMonth(),
-  openDate:null,openCDate:null,editTagId:null,color:PALETTE[0],icon:'',pendingImport:null,segs:[]
-};
-function normCycle(c){
-  c=c||{};
-  return{settings:Object.assign(clone(DEFAULT_CYCLE),c.settings||{}),days:c.days||{},customSym:c.customSym||[]};
-}
+/* ---------- storage (this phone) ---------- */
 function load(){
   try{
     const raw=localStorage.getItem(LS);
-    if(raw){const o=JSON.parse(raw);if(o.health){delete o.health;try{localStorage.setItem(LS,JSON.stringify(o))}catch(e){}}S.tags=o.tags||[];S.days=o.days||{};S.backupAt=o.backupAt||null;S.cycle=normCycle(o.cycle);}
-    else{S.tags=clone(DEFAULT_TAGS);save()}
-  }catch(e){S.tags=clone(DEFAULT_TAGS)}
-  try{const t=localStorage.getItem(LS_TAB);if(t==='cycle'||t==='skin')S.tab=t}catch(e){}
+    if(raw){const o=JSON.parse(raw);S.tags=o.tags||[];S.days=o.days||{};S.backupAt=o.backupAt||null;return}
+  }catch(e){}
+  S.tags=clone(DEFAULT_TAGS);save();
 }
 function save(){
-  try{localStorage.setItem(LS,JSON.stringify({tags:S.tags,days:S.days,backupAt:S.backupAt,cycle:S.cycle}))}
+  try{localStorage.setItem(LS,JSON.stringify({tags:S.tags,days:S.days,backupAt:S.backupAt}))}
   catch(e){toast('没存上，手机空间可能满了')}
 }
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 
-/* ================= cycle math ================= */
-const isFlow=f=>f==='light'||f==='medium'||f==='heavy';
-const CS=()=>S.cycle.settings;
-const avgLen=()=>Math.round((CS().minLen+CS().maxLen)/2);
-function periodRuns(){
-  const ks=Object.keys(S.cycle.days).filter(k=>isFlow(S.cycle.days[k].flow)).sort();
-  const runs=[];
-  for(const k of ks){
-    const n=dayNum(k),last=runs[runs.length-1];
-    if(last&&n-last.endN<=2){last.endN=n}else runs.push({startN:n,endN:n});
-  }
-  runs.forEach(r=>r.len=r.endN-r.startN+1);
-  return runs;
-}
-function buildSegs(){
-  const st=CS(),runs=periodRuns(),t=tn(),avg=avgLen(),L=st.luteal,segs=[];
-  runs.forEach((r,i)=>{
-    const nx=runs[i+1];
-    if(nx){
-      const ov=nx.startN-L;
-      segs.push({kind:'past',startN:r.startN,runEndN:r.endN,nextN:nx.startN,ovMin:ov,ovMax:ov,ovLikely:ov});
-    }else{
-      const nextN=Math.max(r.startN+avg,t);
-      const ovMin=r.startN+st.minLen-L;
-      const ovMax=Math.max(r.startN+st.maxLen-L,nextN-L);
-      segs.push({kind:'current',startN:r.startN,runEndN:r.endN,nextN,ovMin,ovMax,ovLikely:Math.min(r.startN+avg-L,ovMax),
-        minNext:r.startN+st.minLen,maxNext:r.startN+st.maxLen,late:Math.max(0,t-(r.startN+st.maxLen))});
-      let s=nextN;
-      for(let k=0;k<10;k++){const nn=s+avg,ov=nn-L;segs.push({kind:'future',startN:s,runEndN:s-1,nextN:nn,ovMin:ov,ovMax:ov,ovLikely:ov});s=nn}
-    }
-  });
-  return segs;
-}
-function phaseAt(n){
-  const seg=S.segs.find(s=>n>=s.startN&&n<s.nextN);
-  if(!seg)return null;
-  const st=CS(),cd=S.cycle.days[numKey(n)],t=tn();
-  let period=null;
-  if(cd&&isFlow(cd.flow))period='logged';
-  else if(n>=seg.startN&&n<=seg.runEndN)period='logged';
-  else if(seg.kind==='future'&&n<seg.startN+st.periodLen)period='pred';
-  else if(seg.kind==='current'&&n>seg.runEndN&&n<seg.startN+st.periodLen&&n>=t&&seg.runEndN>=t-2)period='pred';
-  let key;
-  if(period)key='period';
-  else if(n>=seg.ovMin&&n<=seg.ovMax)key='ovulation';
-  else if(n>=seg.ovMin-5&&n<=seg.ovMax+1)key='fertile';
-  else if(n>=seg.nextN-st.pms)key='pms';
-  else if(n>seg.ovMax)key='luteal';
-  else key='follicular';
-  return{key,seg,period,cycleDay:n-seg.startN+1,ovLikely:n===seg.ovLikely&&!period};
-}
-function phaseLine(k){
-  const p=phaseAt(dayNum(k));
-  if(!p)return'';
-  return `周期第 ${p.cycleDay} 天 · ${PHASE[p.key].n}`+(p.period==='pred'?'（预计）':'');
-}
-
-/* ================= 护肤 render ================= */
-const tagById=id=>S.tags.find(t=>t.id===id);
-const blankDay=()=>({am:[],pm:[],skin:[],note:''});
-const getDay=k=>S.days[k]||blankDay();
-const isEmptyDay=d=>!((d.am&&d.am.length)||(d.pm&&d.pm.length)||(d.skin&&d.skin.length)||(d.note||'').trim());
-const badStates=d=>SKIN.filter(x=>x.bad&&(d.skin||[]).includes(x.k));
-
+/* ---------- render ---------- */
 function minis(ids){
   const set=new Set(ids||[]);
   return S.tags.filter(t=>set.has(t.id)).map(t=>h('i',{class:'mini',style:`background:${t.color}`},iconOf(t)));
@@ -613,63 +356,40 @@ function dayLabel(k,d){
   if(d.pm&&d.pm.length)parts.push('晚上 '+names(d.pm));
   return parts.join('，');
 }
-function monthCells(y,m,fn){
-  const off=(new Date(y,m,1).getDay()+6)%7;
-  const dim=new Date(y,m+1,0).getDate();
-  const total=Math.ceil((off+dim)/7)*7;
-  const out=[];
-  for(let i=0;i<total;i++){
-    const dt=new Date(y,m,1-off+i);
-    out.push(fn(keyOf(dt.getFullYear(),dt.getMonth(),dt.getDate()),dt,dt.getMonth()!==m));
-  }
-  return out;
-}
 function renderGrid(){
   $('#monthLabel').textContent=`${S.y}年${S.m+1}月`;
+  const off=(new Date(S.y,S.m,1).getDay()+6)%7;
+  const dim=new Date(S.y,S.m+1,0).getDate();
+  const total=Math.ceil((off+dim)/7)*7;
   const tk=todayKey();
-  $('#grid').replaceChildren(...monthCells(S.y,S.m,(k,dt,out)=>{
+  const cells=[];
+  for(let i=0;i<total;i++){
+    const dt=new Date(S.y,S.m,1-off+i);
+    const k=keyOf(dt.getFullYear(),dt.getMonth(),dt.getDate());
     const d=getDay(k);
     const cls=['cell'];
-    if(out)cls.push('out');
+    if(dt.getMonth()!==S.m)cls.push('out');
     if(k===tk)cls.push('today');
     if(badStates(d).length)cls.push('warn');
     if((d.note||'').trim())cls.push('noted');
-    return h('button',{class:cls.join(' '),type:'button','aria-label':dayLabel(k,d),onclick:()=>openDay(k)},
+    cells.push(h('button',{class:cls.join(' '),type:'button','aria-label':dayLabel(k,d),onclick:()=>openDay(k)},
       h('span',{class:'dnum'},dt.getDate()),
       h('span',{class:'slot'},minis(d.am)),
-      h('span',{class:'slot'},minis(d.pm)));
-  }));
+      h('span',{class:'slot'},minis(d.pm))
+    ));
+  }
+  $('#grid').replaceChildren(...cells);
 }
 function renderHero(){
-  const tk=todayKey(),t=tn();
-  if(S.tab==='cycle'){
-    $('#appTitle').textContent='经期日历';
-    const p=phaseAt(t);
-    const cd=S.cycle.days[tk];
-    const bad=cd&&cd.feel!=null&&cd.feel>=2;
-    $('#mascot').classList.toggle('is-tired',!!bad||(p&&p.key==='period'&&!!cd&&cd.feel>=1));
-    let msg;
-    if(!p)msg='先记一下最近一次例假是哪天来的～';
-    else if(p.key==='period')msg=bad?'经期辛苦啦，今天多休息、喝点热的':'经期中，记得多休息哦';
-    else if(p.key==='pms')msg=bad?'经前激素在往下掉，难受不是你的错，抱抱':'经前期到啦，身体可能会敏感一点';
-    else if(p.key==='ovulation'||p.key==='fertile')msg='快到排卵期啦，雌激素在高峰';
-    else if(p.key==='follicular')msg='卵泡期，状态在变好～';
-    else msg='黄体期，容易出油，注意清洁哦';
-    $('#bubble').textContent=msg;
-    return;
-  }
-  $('#appTitle').textContent='护肤日历';
+  const tk=todayKey(),tn=dayNum(tk);
   const past=Object.keys(S.days).filter(k=>k<=tk).sort().reverse();
   const badKey=past.find(k=>badStates(S.days[k]).length);
-  const recentBad=badKey&&t-dayNum(badKey)<=3;
+  const recentBad=badKey&&tn-dayNum(badKey)<=3;
   $('#mascot').classList.toggle('is-tired',!!recentBad);
-  const p=phaseAt(t);
   let msg;
   if(recentBad){
     const what=badStates(S.days[badKey]).map(x=>x.n).join('、');
     msg=badKey===tk?`今天有点${what}，对皮肤温柔一点～`:`${fmtShort(badKey)}${what}了，先缓一缓吧`;
-  }else if(p&&p.key==='pms'){
-    msg='经前期啦，皮肤可能容易出油长痘～';
   }else if(S.days[tk]&&!isEmptyDay(S.days[tk])){
     msg='今天打过卡啦，皮肤乖乖的 ✨';
   }else{
@@ -678,8 +398,8 @@ function renderHero(){
   $('#bubble').textContent=msg;
 
   const alert=$('#skinAlert');
-  if(badKey&&t-dayNum(badKey)<=14){
-    const ago=t-dayNum(badKey);
+  if(badKey&&tn-dayNum(badKey)<=14){
+    const ago=tn-dayNum(badKey);
     alert.replaceChildren(h('span',null,'🩹'),h('span',null,`最近一次皮肤状况：${fmtShort(badKey)} ${badStates(S.days[badKey]).map(x=>x.n).join('、')}（${ago===0?'今天':ago+' 天前'}）`));
     alert.hidden=false;
   }else alert.hidden=true;
@@ -694,22 +414,23 @@ function renderStats(){
         h('button',{class:'pill',type:'button',onclick:openTags},'自己添加'))));
     return;
   }
-  const tk=todayKey(),t=tn();
+  const tk=todayKey(),tn=dayNum(tk);
   const past=Object.keys(S.days).filter(k=>k<=tk).sort().reverse();
   const prefix=`${S.y}-${pad(S.m+1)}-`;
-  box.replaceChildren(...S.tags.map(tg=>{
+  box.replaceChildren(...S.tags.map(t=>{
     let last=null;
     for(const k of past){
-      const d=S.days[k],a=(d.am||[]).includes(tg.id),p=(d.pm||[]).includes(tg.id);
+      const d=S.days[k],a=(d.am||[]).includes(t.id),p=(d.pm||[]).includes(t.id);
       if(a||p){last={k,slot:a&&p?'☀️🌙':a?'☀️':'🌙'};break}
     }
     let cnt=0;
-    for(const[k,d]of Object.entries(S.days))if(k.startsWith(prefix))cnt+=((d.am||[]).includes(tg.id)?1:0)+((d.pm||[]).includes(tg.id)?1:0);
-    const ago=last?t-dayNum(last.k):null;
+    for(const[k,d]of Object.entries(S.days))if(k.startsWith(prefix))cnt+=((d.am||[]).includes(t.id)?1:0)+((d.pm||[]).includes(t.id)?1:0);
+    const ago=last?tn-dayNum(last.k):null;
     return h('div',{class:'stat'},
-      h('div',{class:'stat-top'},h('i',{class:'mini',style:`background:${tg.color}`},iconOf(tg)),h('span',{class:'stat-name'},tg.name)),
+      h('div',{class:'stat-top'},h('i',{class:'mini',style:`background:${t.color}`},iconOf(t)),h('span',{class:'stat-name'},t.name)),
       h('div',{class:'stat-ago'},ago==null?h('span',null,'还没用过'):ago===0?h('span',{class:'now'},'今天'):[h('b',null,ago),'天前']),
-      h('div',{class:'stat-sub'},last?`上次 ${fmtShort(last.k)} ${last.slot}`:'—',h('br'),`${S.m+1}月 ${cnt} 次`));
+      h('div',{class:'stat-sub'},last?`上次 ${fmtShort(last.k)} ${last.slot}`:'—',h('br'),`${S.m+1}月 ${cnt} 次`)
+    );
   }));
 }
 function renderDaySheet(){
@@ -737,219 +458,9 @@ function renderTagSheet(){
 function renderData(){
   $('#dataNote').textContent='记录只存在这台手机里。换手机或清理 Safari 前，记得先导出备份。'+(S.backupAt?`上次备份：${fmtShort(S.backupAt)}`:'还没备份过。');
 }
+function renderAll(){renderGrid();renderHero();renderStats();renderDaySheet();renderData();if(!$('#tagSheet').hidden)renderTagSheet()}
 
-/* ================= 经期 render ================= */
-const symName=k=>{const all=[...SYM,...MOOD,...S.cycle.customSym];const f=all.find(x=>x.k===k);return f?f.n:null};
-function renderRing(){
-  const t=tn(),p=phaseAt(t),svg=$('#ring');
-  const NS='http://www.w3.org/2000/svg';
-  const mk=(tag,a)=>{const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(a))e.setAttribute(k,v);return e};
-  svg.replaceChildren();
-  const r=40,C=2*Math.PI*r;
-  svg.append(mk('circle',{cx:50,cy:50,r,fill:'none',stroke:'#FBE7EE','stroke-width':10}));
-  if(!p){
-    $('#ringTop').textContent='还没有记录';$('#ringDay').textContent='🌸';$('#ringPhase').textContent='';
-    return;
-  }
-  const seg=p.seg,T=seg.nextN-seg.startN;
-  const parts=[];
-  for(let i=0;i<T;i++){
-    const q=phaseAt(seg.startN+i),key=q?q.key:'follicular';
-    const last=parts[parts.length-1];
-    if(last&&last.key===key)last.len++;else parts.push({key,from:i,len:1});
-  }
-  const g=mk('g',{transform:'rotate(-90 50 50)'});
-  const gap=parts.length>1?0.6:0;
-  for(const pt of parts){
-    const len=Math.max(pt.len/T*C-gap,0.5);
-    g.append(mk('circle',{cx:50,cy:50,r,fill:'none',stroke:PHASE[pt.key].c,'stroke-width':10,'stroke-linecap':'butt',
-      'stroke-dasharray':`${len} ${C}`,'stroke-dashoffset':String(-(pt.from/T*C))}));
-  }
-  svg.append(g);
-  const ang=((t-seg.startN+0.5)/T)*2*Math.PI-Math.PI/2;
-  svg.append(mk('circle',{cx:50+r*Math.cos(ang),cy:50+r*Math.sin(ang),r:6.5,fill:'#fff',stroke:'#4B3541','stroke-width':2.5}));
-  $('#ringTop').textContent='周期第';
-  $('#ringDay').textContent=String(p.cycleDay);
-  $('#ringPhase').textContent=PHASE[p.key].n;
-}
-function renderCycleHero(){
-  renderRing();
-  const t=tn(),tk=todayKey(),p=phaseAt(t),facts=$('#cycFacts'),desc=$('#phaseDesc');
-  const li=(color,...kids)=>h('li',null,h('i',{class:'dot',style:`background:${color}`}),h('span',null,...kids));
-  if(!p){
-    desc.textContent='点「例假来了」或者在下面日历上点最近一次来例假的那几天，选流量，就会自动算出排卵期、黄体期和下次例假。';
-    facts.replaceChildren(li('var(--ph-period)','你的设置：周期 ',h('b',null,`${CS().minLen}–${CS().maxLen}`),' 天，经期 ',h('b',null,CS().periodLen),' 天'));
-  }else{
-    desc.textContent=PHASE[p.key].d;
-    const seg=p.seg,items=[];
-    if(seg.kind==='current'){
-      const cur=seg;
-      const inPeriod=p.key==='period';
-      if(inPeriod)items.push(li('var(--ph-period)','经期第 ',h('b',null,p.cycleDay),' 天'));
-      if(cur.late>0){
-        items.push(li('var(--ph-period)','已经比最长周期晚了 ',h('b',null,cur.late),' 天，来了记得点「例假来了」'));
-      }else{
-        const left=cur.nextN-t;
-        items.push(li('var(--ph-period)','下次例假约 ',h('b',null,fmtMD(numKey(cur.nextN))),`（${fmtMD(numKey(cur.minNext))}–${fmtMD(numKey(cur.maxNext))} 之间）`,left>0?`，还有 ${left} 天`:''));
-      }
-      if(t<=cur.ovMax){
-        items.push(li(PHASE.ovulation.c,'排卵期约 ',h('b',null,cur.ovMin===cur.ovMax?fmtMD(numKey(cur.ovMin)):`${fmtMD(numKey(cur.ovMin))}–${fmtMD(numKey(cur.ovMax))}`)));
-      }
-      const pmsStart=cur.nextN-CS().pms;
-      if(t<pmsStart)items.push(li(PHASE.pms.c,'经前期大约从 ',h('b',null,fmtMD(numKey(pmsStart))),' 开始'));
-      else if(!inPeriod)items.push(li(PHASE.pms.c,'现在是经前期，难受的话记下来'));
-    }else{
-      items.push(li('var(--ph-period)',`这是 ${fmtMD(numKey(seg.startN))} 开始的周期`));
-    }
-    facts.replaceChildren(...items);
-  }
-  const td=S.cycle.days[tk],yd=S.cycle.days[numKey(t-1)];
-  const btn=$('#periodBtn');
-  if(td&&isFlow(td.flow))btn.hidden=true;
-  else{btn.hidden=false;btn.textContent=(yd&&isFlow(yd.flow))?'今天还在来 🩸':'例假来了 🩸'}
-}
-function renderCGrid(){
-  $('#cmonthLabel').textContent=`${S.cy}年${S.cm+1}月`;
-  const tk=todayKey();
-  $('#cgrid').replaceChildren(...monthCells(S.cy,S.cm,(k,dt,out)=>{
-    const n=dayNum(k),p=phaseAt(n),d=S.cycle.days[k]||{};
-    const cls=['cell','ccell','k-'+(p?p.key:'none')];
-    if(p&&p.period==='logged')cls.push('p-logged');
-    if(p&&p.period==='pred')cls.push('p-pred');
-    if(d.flow==='spot')cls.push('spot');
-    if(out)cls.push('out');
-    if(k===tk)cls.push('today');
-    const nSym=(d.sym||[]).length+(d.mood||[]).length;
-    const label=[fmtLong(k),p?`${PHASE[p.key].n}${p.period==='pred'?'（预计）':''}，周期第${p.cycleDay}天`:'',nSym?`记了${nSym}个症状`:''].filter(Boolean).join('，');
-    return h('button',{class:cls.join(' '),type:'button','aria-label':label,onclick:()=>openCycleDay(k)},
-      h('span',{class:'dnum'},dt.getDate()),
-      p&&p.ovLikely?h('span',{class:'ov-mark','aria-hidden':'true'},'✿'):null,
-      h('span',{class:'cmid'},
-        d.feel>=1?h('span',{class:'feel-e'},FEEL[d.feel].e):null,
-        nSym?h('i',{class:'cnt'},nSym):null));
-  }));
-}
-function renderPatterns(){
-  const feel={},res={};
-  for(const[k,d]of Object.entries(S.cycle.days)){
-    const p=phaseAt(dayNum(k));if(!p)continue;
-    const g=p.key==='fertile'?'ovulation':p.key;
-    if(d.feel!=null)(feel[g]||(feel[g]=[])).push(d.feel);
-    for(const s of[...(d.sym||[]),...(d.mood||[])]){
-      const r=res[s]||(res[s]={n:0,before:[],pday:[]});r.n++;
-      if(p.key==='period')r.pday.push(p.cycleDay);
-      else if(p.seg.kind==='past'){const b=p.seg.nextN-dayNum(k);if(b<=14)r.before.push(b)}
-    }
-  }
-  const fr=$('#feelRows');
-  const groups=GROUPS.filter(([g])=>feel[g]&&feel[g].length);
-  if(!groups.length)fr.replaceChildren(h('p',{class:'hint'},'每天在日历里点一下「整体感觉」，这里会算出哪个阶段最难受。'));
-  else fr.replaceChildren(...groups.map(([g,n])=>{
-    const a=feel[g].reduce((x,y)=>x+y,0)/feel[g].length;
-    return h('div',{class:'frow'},
-      h('i',{class:'ph-dot',style:`background:${PHASE[g].c}`}),
-      h('div',null,h('div',null,n),h('div',{class:'sub'},`记了 ${feel[g].length} 天`)),
-      h('div',{class:'val'},FEEL[Math.round(a)].e,' ',a.toFixed(1),h('span',{class:'meter'},[1,2,3].map(i=>h('i',{class:a>=i-0.5?'on':''})))));
-  }));
-  const pr=$('#patRows');
-  const items=Object.entries(res).filter(([k])=>symName(k)).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
-  if(!items.length){pr.replaceChildren(h('p',{class:'hint'},'记下症状后，这里会告诉你它们一般出现在例假前几天。记满 2 个周期会更准。'));return}
-  const range=arr=>{const a=[...arr].sort((x,y)=>x-y);if(a.length>=4){return[a[Math.floor(a.length*.25)],a[Math.ceil(a.length*.75)-1]]}return[a[0],a[a.length-1]]};
-  pr.replaceChildren(...items.map(([k,r])=>{
-    let txt;
-    if(r.before.length&&r.before.length>=r.pday.length){const[lo,hi]=range(r.before);txt=lo===hi?`多在例假前 ${lo} 天`:`多在例假前 ${lo}–${hi} 天`}
-    else if(r.pday.length){const[lo,hi]=range(r.pday);txt=lo===hi?`多在经期第 ${lo} 天`:`多在经期第 ${lo}–${hi} 天`}
-    else txt='还看不出规律';
-    return h('div',{class:'prow'},h('b',null,symName(k)),h('span',null,`${txt} · 共 ${r.n} 次`));
-  }));
-}
-function renderHistory(){
-  const runs=periodRuns(),box=$('#histRows'),avg=$('#avgBox');
-  if(!runs.length){box.replaceChildren(h('p',{class:'hint'},'还没有例假记录。'));avg.hidden=true;return}
-  const rows=[];
-  for(let i=runs.length-1;i>=0&&rows.length<8;i--){
-    const r=runs[i],nx=runs[i+1];
-    rows.push(h('div',{class:'prow'},h('b',null,`${fmtMD(numKey(r.startN))} 开始`),
-      h('span',null,`经期 ${r.len} 天 · `+(nx?`周期 ${nx.startN-r.startN} 天`:'进行中'))));
-  }
-  box.replaceChildren(...rows);
-  const lens=[];for(let i=1;i<runs.length;i++)lens.push(runs[i].startN-runs[i-1].startN);
-  const recent=lens.slice(-6).filter(x=>x>=15&&x<=60);
-  if(recent.length>=3){
-    const mn=Math.min(...recent),mx=Math.max(...recent),av=recent.reduce((a,b)=>a+b,0)/recent.length;
-    const pl=Math.round(runs.slice(-6).reduce((a,r)=>a+r.len,0)/Math.min(6,runs.length));
-    const st=CS();
-    const same=st.minLen===mn&&st.maxLen===mx&&st.periodLen===pl;
-    avg.replaceChildren(
-      h('span',null,`最近 ${recent.length} 个周期平均 ${av.toFixed(1)} 天（最短 ${mn}、最长 ${mx}），经期平均 ${pl} 天。`),
-      same?h('span',{class:'hint'},'设置已经和记录一致 ✓'):h('button',{class:'pill solid',type:'button',onclick:()=>{Object.assign(st,{minLen:mn,maxLen:mx,periodLen:pl});save();renderAll();toast('已按记录更新设置')}},'用记录更新设置'));
-    avg.hidden=false;
-  }else avg.hidden=true;
-}
-const SETTINGS=[
-  {k:'minLen',n:'最短周期',d:'两次例假第一天之间最少隔几天',min:18,max:45},
-  {k:'maxLen',n:'最长周期',d:'最多隔几天',min:18,max:60},
-  {k:'periodLen',n:'经期天数',d:'每次一般来几天',min:2,max:10},
-  {k:'luteal',n:'黄体期',d:'排卵到例假的天数，一般 12–14，不知道就用 14',min:9,max:17},
-  {k:'pms',n:'经前期',d:'例假前几天算经前期',min:3,max:10}
-];
-function renderSettings(){
-  const st=CS();
-  $('#settings').replaceChildren(...SETTINGS.map(s=>h('div',{class:'set-row'},
-    h('div',null,h('div',{class:'lbl'},s.n),h('div',{class:'desc'},s.d)),
-    h('div',{class:'stepper'},
-      h('button',{class:'round',type:'button','aria-label':s.n+' 减一天',onclick:()=>stepSetting(s,-1)},'−'),
-      h('output',{'aria-live':'polite'},st[s.k]),
-      h('button',{class:'round',type:'button','aria-label':s.n+' 加一天',onclick:()=>stepSetting(s,1)},'+')))));
-}
-function stepSetting(s,d){
-  const st=CS();
-  st[s.k]=Math.min(s.max,Math.max(s.min,st[s.k]+d));
-  if(s.k==='minLen'&&st.maxLen<st.minLen)st.maxLen=st.minLen;
-  if(s.k==='maxLen'&&st.minLen>st.maxLen)st.minLen=st.maxLen;
-  save();renderAll();
-}
-function renderCycleSheet(){
-  const k=S.openCDate;if(!k)return;
-  const d=S.cycle.days[k]||{};
-  $('#cPhase').textContent=phaseLine(k);
-  $('#flowChips').replaceChildren(...FLOW.map(f=>{
-    const on=d.flow===f.k;
-    return h('button',{type:'button',class:'chip plain flow'+(on?' on':''),'aria-pressed':on?'true':'false',onclick:()=>updateC(k,x=>{x.flow=on?'':f.k})},f.n);
-  }));
-  $('#feelChips').replaceChildren(...FEEL.map(f=>{
-    const on=d.feel===f.v;
-    return h('button',{type:'button',class:'chip feel'+(on?' on':''),'aria-pressed':on?'true':'false',onclick:()=>updateC(k,x=>{x.feel=on?null:f.v})},h('span',{class:'ic'},f.e),f.n);
-  }));
-  const symChip=(list,field,cls)=>list.map(s=>{
-    const on=(d[field]||[]).includes(s.k);
-    return h('button',{type:'button',class:`chip plain ${cls}`+(on?' on':''),'aria-pressed':on?'true':'false',onclick:()=>updateC(k,x=>{const a=x[field]||(x[field]=[]);const i=a.indexOf(s.k);if(i>=0)a.splice(i,1);else a.push(s.k)})},s.n);
-  });
-  const custom=S.cycle.customSym;
-  const mg=$('#symManage');
-  if(!custom.length)S.symEdit=false;
-  mg.hidden=!custom.length;
-  mg.textContent=S.symEdit?'删好了':'删除自定义症状';
-  if(S.symEdit){
-    $('#symChips').replaceChildren(...symChip(SYM,'sym','sym'),...custom.map(s=>h('button',{type:'button',class:'chip plain del'+(S.symArm===s.k?' armed':''),onclick:()=>delCustom(s)},
-      S.symArm===s.k?`再点一次删除「${s.n}」`:`✕ ${s.n}`)));
-  }else $('#symChips').replaceChildren(...symChip([...SYM,...custom],'sym','sym'));
-  $('#moodChips').replaceChildren(...symChip(MOOD,'mood','mood'));
-}
-function renderCycle(){
-  S.segs=buildSegs();
-  renderCycleHero();renderCGrid();renderPatterns();renderHistory();renderSettings();renderCycleSheet();
-}
-function renderAll(){
-  S.segs=buildSegs();
-  renderHero();
-  if(S.tab==='skin'){renderGrid();renderStats();renderDaySheet()}
-  else renderCycle();
-  renderData();
-  if(!$('#tagSheet').hidden)renderTagSheet();
-}
-
-/* ================= 护肤 edits ================= */
+/* ---------- day edits ---------- */
 function updateDay(k,fn){
   const d=Object.assign(blankDay(),clone(getDay(k)));
   fn(d);
@@ -971,47 +482,7 @@ function toggleSkin(x){
 }
 $('#note').addEventListener('input',e=>{const v=e.target.value;updateDay(S.openDate,d=>{d.note=v})});
 
-/* ================= 经期 edits ================= */
-const isEmptyC=d=>!(d.flow||(d.sym&&d.sym.length)||(d.mood&&d.mood.length)||d.feel!=null||(d.note||'').trim());
-function updateC(k,fn,noSheet){
-  const d=Object.assign({flow:'',sym:[],mood:[],feel:null,note:''},clone(S.cycle.days[k]||{}));
-  fn(d);
-  if(isEmptyC(d))delete S.cycle.days[k];else S.cycle.days[k]=d;
-  save();
-  S.segs=buildSegs();
-  renderHero();renderCycleHero();renderCGrid();renderPatterns();renderHistory();
-  if(!noSheet)renderCycleSheet();
-}
-$('#cnote').addEventListener('input',e=>{const v=e.target.value;updateC(S.openCDate,d=>{d.note=v},true)});
-$('#symAdd').addEventListener('click',()=>{
-  const v=$('#symNew').value.trim();
-  if(!v){$('#symNew').focus();return}
-  if([...SYM,...MOOD,...S.cycle.customSym].some(s=>s.n===v)){toast('已经有这个啦');return}
-  const s={k:'c_'+Date.now().toString(36),n:v};
-  S.cycle.customSym.push(s);
-  $('#symNew').value='';
-  updateC(S.openCDate,d=>{d.sym.push(s.k)});
-  toast(`加好啦：${v}`);
-});
-$('#symManage').addEventListener('click',()=>{S.symEdit=!S.symEdit;S.symArm=null;renderCycleSheet()});
-function delCustom(s){
-  if(S.symArm!==s.k){S.symArm=s.k;renderCycleSheet();return}
-  S.cycle.customSym=S.cycle.customSym.filter(x=>x.k!==s.k);
-  for(const[k,d]of Object.entries(S.cycle.days)){
-    if(d.sym&&d.sym.includes(s.k)){d.sym=d.sym.filter(x=>x!==s.k);if(isEmptyC(d))delete S.cycle.days[k]}
-  }
-  S.symArm=null;save();renderCycle();
-  toast(`删掉了「${s.n}」`);
-}
-$('#periodBtn').addEventListener('click',()=>{
-  const k=todayKey();
-  updateC(k,d=>{if(!isFlow(d.flow))d.flow='medium'});
-  toast('记上啦，量多少可以再改');
-  openCycleDay(k);
-});
-$('#logTodayBtn').addEventListener('click',()=>openCycleDay(todayKey()));
-
-/* ================= tags ================= */
+/* ---------- tag edits ---------- */
 function nextColor(){const used=new Set(S.tags.map(t=>t.color));return PALETTE.find(c=>!used.has(c))||PALETTE[S.tags.length%PALETTE.length]}
 function disarm(){const b=$('#tagDelete');b.classList.remove('armed');b.textContent='删除'}
 function resetForm(){
@@ -1052,10 +523,10 @@ $('#tagDelete').addEventListener('click',()=>{
   if(t)toast(`删掉了「${t.name}」`);
 });
 
-/* ================= backup ================= */
+/* ---------- backup ---------- */
 $('#exportBtn').addEventListener('click',async()=>{
   const tk=todayKey();
-  const json=JSON.stringify({app:'skin-diary',v:2,exportedAt:new Date().toISOString(),tags:S.tags,days:S.days,cycle:S.cycle},null,1);
+  const json=JSON.stringify({app:'skin-diary',v:1,exportedAt:new Date().toISOString(),tags:S.tags,days:S.days},null,1);
   const name=`护肤日历备份-${tk}.json`;
   const file=new File([json],name,{type:'application/json'});
   const mark=()=>{S.backupAt=tk;save();renderData()};
@@ -1077,83 +548,55 @@ $('#importFile').addEventListener('change',async e=>{
     const o=JSON.parse(await f.text());
     if(!o||o.app!=='skin-diary'||!Array.isArray(o.tags)||typeof o.days!=='object')throw 0;
     S.pendingImport=o;
-    const cdays=o.cycle&&o.cycle.days?Object.keys(o.cycle.days).length:0;
-    $('#importText').textContent=`这份备份有 ${o.tags.length} 个标签、${Object.keys(o.days).length} 天护肤记录、${cdays} 天经期记录（${(o.exportedAt||'').slice(0,10)}）。恢复后会替换手机上现在的记录。`;
+    $('#importText').textContent=`这份备份有 ${o.tags.length} 个标签、${Object.keys(o.days).length} 天记录（${(o.exportedAt||'').slice(0,10)}）。恢复后会替换手机上现在的记录。`;
     $('#importConfirm').hidden=false;
   }catch(err){toast('这个文件不是护肤日历的备份')}
 });
 $('#importYes').addEventListener('click',()=>{
   const o=S.pendingImport;if(!o)return;
-  S.tags=o.tags;S.days=o.days;S.cycle=normCycle(o.cycle);S.pendingImport=null;save();
+  S.tags=o.tags;S.days=o.days;S.pendingImport=null;save();
   $('#importConfirm').hidden=true;renderAll();toast('恢复好啦');
 });
 $('#importNo').addEventListener('click',()=>{S.pendingImport=null;$('#importConfirm').hidden=true});
 
-/* ================= sheets ================= */
+/* ---------- sheets ---------- */
 function show(id){$('#scrim').hidden=false;$('#'+id).hidden=false;document.body.classList.add('locked')}
 function closeSheets(){
-  S.openDate=null;S.openCDate=null;
-  for(const id of['daySheet','tagSheet','cycleSheet'])$('#'+id).hidden=true;
-  $('#scrim').hidden=true;
+  S.openDate=null;
+  $('#daySheet').hidden=true;$('#tagSheet').hidden=true;$('#scrim').hidden=true;
   document.body.classList.remove('locked');
 }
 function openDay(k){
   S.openDate=k;
   $('#dayTitle').textContent=fmtLong(k);
-  $('#dayPhase').textContent=phaseLine(k);
   $('#note').value=getDay(k).note||'';
   renderDaySheet();show('daySheet');$('#daySheet').scrollTop=0;
-}
-function openCycleDay(k){
-  S.openCDate=k;S.symEdit=false;S.symArm=null;
-  $('#cTitle').textContent=fmtLong(k);
-  $('#cnote').value=(S.cycle.days[k]||{}).note||'';
-  $('#symNew').value='';
-  renderCycleSheet();show('cycleSheet');$('#cycleSheet').scrollTop=0;
 }
 function openTags(){resetForm();show('tagSheet')}
 $('#dayClose').addEventListener('click',closeSheets);
 $('#tagClose').addEventListener('click',closeSheets);
-$('#cClose').addEventListener('click',closeSheets);
 $('#scrim').addEventListener('click',closeSheets);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheets()});
-$('#mascot').addEventListener('click',()=>S.tab==='cycle'?openCycleDay(todayKey()):openDay(todayKey()));
+$('#mascot').addEventListener('click',()=>openDay(todayKey()));
 
-/* ================= tabs & month nav ================= */
-function setTab(t){
-  S.tab=t;
-  try{localStorage.setItem(LS_TAB,t)}catch(e){}
-  $('#tab-skin').hidden=t!=='skin';$('#tab-cycle').hidden=t!=='cycle';
-  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t?'true':'false'));
-  renderAll();window.scrollTo(0,0);
-}
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+/* ---------- month nav ---------- */
 function shiftMonth(n){const d=new Date(S.y,S.m+n,1);S.y=d.getFullYear();S.m=d.getMonth();renderGrid();renderStats()}
-function shiftCMonth(n){const d=new Date(S.cy,S.cm+n,1);S.cy=d.getFullYear();S.cm=d.getMonth();renderCGrid()}
 $('#prev').addEventListener('click',()=>shiftMonth(-1));
 $('#next').addEventListener('click',()=>shiftMonth(1));
-$('#cprev').addEventListener('click',()=>shiftCMonth(-1));
-$('#cnext').addEventListener('click',()=>shiftCMonth(1));
 $('#todayBtn').addEventListener('click',()=>{const t=new Date();S.y=t.getFullYear();S.m=t.getMonth();renderGrid();renderStats()});
-$('#ctodayBtn').addEventListener('click',()=>{const t=new Date();S.cy=t.getFullYear();S.cm=t.getMonth();renderCGrid()});
 $('#tagsBtn').addEventListener('click',openTags);
-function swipe(el,fn){
-  let x=null,y=null;
-  el.addEventListener('touchstart',e=>{const t=e.touches[0];x=t.clientX;y=t.clientY},{passive:true});
-  el.addEventListener('touchend',e=>{
-    if(x==null)return;const t=e.changedTouches[0];const dx=t.clientX-x,dy=t.clientY-y;x=null;
-    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)fn(dx<0?1:-1);
-  },{passive:true});
-}
-swipe($('#grid'),shiftMonth);
-swipe($('#cgrid'),shiftCMonth);
+let tx=null,ty=null;
+$('#grid').addEventListener('touchstart',e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY},{passive:true});
+$('#grid').addEventListener('touchend',e=>{
+  if(tx==null)return;const t=e.changedTouches[0];const dx=t.clientX-tx,dy=t.clientY-ty;tx=null;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)shiftMonth(dx<0?1:-1);
+},{passive:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});
 
-/* ================= start ================= */
-load();
-try{localStorage.removeItem('skin-diary-gh')}catch(e){}
+/* ---------- start ---------- */
+try{localStorage.removeItem('skin-diary-gh');localStorage.removeItem('skin-diary-tab')}catch(e){}
 if(location.hash.includes('access_token'))history.replaceState(null,'',location.pathname);
-setTab(S.tab);
+load();renderAll();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
