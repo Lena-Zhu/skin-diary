@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>护肤日历</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="护肤日历">
+<meta name="theme-color" content="#FFF4F7">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=ZCOOL+KuaiLe&display=swap">
+<style>
+/* Layout: one phone column of soft cards — mascot hero, month card (top row = morning, bottom row = night), rhythm cards, backup card. Single pastel-pink look by choice. */
+:root{
+  --bg:#FFF4F7;
+  --dot:#FFE0E8;
+  --card:#FFFFFF;
+  --ink:#4B3541;
+  --muted:#9C8592;
+  --pink:#FF86A6;
+  --pink-deep:#E85F86;
+  --pink-soft:#FFE4EC;
+  --line:#F7DCE4;
+  --peach:#FFEDE1;
+  --mint:#DFF5EA;
+  --shadow:0 6px 18px rgba(232,95,134,.12);
+  --font-cute:"ZCOOL KuaiLe","Fredoka","PingFang SC",-apple-system,sans-serif;
+  --font-num:"Fredoka","PingFang SC",-apple-system,system-ui,sans-serif;
+  --font-ui:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{
+  margin:0;color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.5;
+  background:var(--bg) radial-gradient(var(--dot) 1.6px,transparent 1.8px) 0 0/22px 22px;
+  min-height:100vh;
+  padding-top:calc(env(safe-area-inset-top,0px) + 14px);
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 36px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;
+  -webkit-text-size-adjust:100%;
+}
+body.locked{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+.wrap{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:16px 12px}
+h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-spacing:.02em}
+
+/* hero */
+.hero{display:flex;align-items:center;gap:12px;padding:0 4px}
+.hero-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.hero h1{font-family:var(--font-cute);font-weight:400;font-size:32px;margin:0;line-height:1.1;color:var(--pink-deep)}
+.bubble{position:relative;margin:0;background:var(--card);border-radius:16px;padding:9px 13px;font-size:15px;box-shadow:var(--shadow);align-self:flex-start}
+.bubble::after{content:"";position:absolute;right:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-left-color:var(--card);border-right:0}
+.mascot{width:96px;height:104px;flex:none;border:0;background:none;padding:0}
+.mascot svg{width:100%;height:100%;display:block}
+.mascot .tired,.mascot.is-tired .happy{display:none}
+.mascot.is-tired .tired{display:inline}
+@media (prefers-reduced-motion:no-preference){
+  .mascot svg{animation:bob 2.8s ease-in-out infinite;transform-origin:50% 100%}
+  @keyframes bob{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(.98,1.02)}}
+}
+
+/* calendar */
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 10px}
+.month{display:flex;align-items:center;gap:6px}
+.month h2{min-width:6.6em;text-align:center;font-family:var(--font-num);font-weight:600;font-size:21px;font-variant-numeric:tabular-nums}
+.round{width:38px;height:38px;border-radius:50%;border:0;background:var(--pink-soft);color:var(--pink-deep);font-size:20px;font-weight:700;display:grid;place-items:center;line-height:1}
+.pill{min-height:38px;padding:0 15px;border-radius:999px;border:0;background:var(--pink-soft);color:var(--pink-deep);font-weight:600;font-size:15px}
+.pill.solid{background:var(--pink);color:#fff}
+.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;font-size:13px;color:var(--muted);text-align:center;font-weight:600;margin-bottom:4px}
+.dow span:nth-child(n+6){color:var(--pink)}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;touch-action:pan-y}
+.cell{
+  position:relative;appearance:none;border:0;text-align:left;min-width:0;
+  display:flex;flex-direction:column;gap:2px;min-height:84px;padding:4px 2px 5px;
+  border-radius:14px;background:#FFF8FA;
+}
+.cell.out{opacity:.38}
+.cell.warn{background:var(--peach)}
+.cell.warn::before{content:"🩹";position:absolute;right:2px;bottom:1px;font-size:12px;line-height:1}
+.cell.noted::after{content:"";position:absolute;top:8px;right:6px;width:6px;height:6px;border-radius:50%;background:#D9B8C6}
+.dnum{font-family:var(--font-num);font-weight:500;font-size:15px;line-height:22px;min-width:22px;text-align:center;align-self:flex-start;border-radius:999px;font-variant-numeric:tabular-nums}
+.cell.today .dnum{background:var(--pink);color:#fff;font-weight:600}
+.slot{display:flex;flex-wrap:wrap;gap:2px;min-height:20px;align-content:flex-start}
+.mini{font-style:normal;display:inline-grid;place-items:center;height:19px;min-width:18px;padding:0 2px;border-radius:6px;font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;line-height:1}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;margin:12px 0 0;font-size:13px;color:var(--muted)}
+
+/* rhythm */
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px;margin-bottom:10px}
+.alert{display:flex;gap:8px;align-items:flex-start;background:var(--peach);color:#8A4A22;border-radius:18px;padding:11px 14px;font-size:15px;margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.stat-top{display:flex;align-items:center;gap:8px;min-width:0}
+.stat-top .mini{height:34px;min-width:34px;border-radius:12px;font-size:18px}
+.stat-name{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-ago{font-family:var(--font-num);font-size:15px;color:var(--muted)}
+.stat-ago b{font-size:32px;font-weight:600;color:var(--ink);margin-right:3px;font-variant-numeric:tabular-nums}
+.stat-ago .now{font-size:22px;font-weight:600;color:var(--pink-deep)}
+.stat-sub{font-size:13px;color:var(--muted);line-height:1.45}
+.empty{text-align:center;padding:18px 10px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.empty p{margin:0;color:var(--muted)}
+
+/* data card */
+.data{padding:16px}
+.data p{margin:8px 0 12px;font-size:15px;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.confirm{margin-top:12px;padding:12px;border-radius:16px;background:var(--pink-soft);font-size:15px;display:flex;flex-direction:column;gap:10px}
+
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(75,53,65,.32);z-index:20}
+.sheet{
+  position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:30;
+  width:100%;max-width:540px;max-height:88dvh;overflow:auto;overscroll-behavior:contain;
+  background:var(--card);border-radius:28px 28px 0 0;box-shadow:0 -10px 30px rgba(232,95,134,.18);
+  padding-left:max(20px,env(safe-area-inset-left,0px));
+  padding-right:max(20px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(26px + env(safe-area-inset-bottom,0px));
+}
+.sheet-head{position:sticky;top:0;background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:20px 0 10px;z-index:1}
+.sheet-head::before{content:"";position:absolute;top:8px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:var(--line)}
+.sheet-head h2{font-size:22px}
+.sheet-body{display:flex;flex-direction:column;gap:8px}
+.sheet h3{font-size:16px;font-weight:700;margin:12px 0 2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px 0 12px;border-radius:999px;border:2px solid var(--c,var(--line));background:var(--card);font-size:16px;display:inline-flex;align-items:center;gap:6px;transition:transform .12s}
+.chip .ic{font-size:18px;line-height:1}
+.chip.on{background:var(--c);font-weight:700}
+.chip.on::after{content:"✓";font-weight:800;color:var(--pink-deep);margin-left:2px}
+.chip:active{transform:scale(.94)}
+.chip.skin{--c:#FFD2B8}
+.chip.skin.good{--c:#BEEBD3}
+textarea,input[type=text]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#FFF8FA;border:2px solid var(--line);border-radius:16px;padding:11px 13px}
+textarea{resize:vertical;min-height:88px}
+textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
+.hint{font-size:14px;color:var(--muted);margin:2px 0 0}
+
+.tag-list{display:flex;flex-direction:column;gap:6px}
+.tag-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 10px;border:0;border-radius:16px;background:#FFF8FA;text-align:left}
+.tag-row.sel{background:var(--pink-soft)}
+.tag-row .mini{height:34px;min-width:34px;border-radius:12px;font-size:18px}
+.tag-row .edit{font-size:14px;color:var(--pink-deep);font-weight:600}
+.form{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:20px;border:2px dashed var(--line);margin-top:10px}
+.form label{font-size:14px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;gap:5px}
+.form-title{font-weight:700}
+.fields{display:grid;grid-template-columns:minmax(0,1fr) 7em;gap:10px}
+.emoji-row{display:flex;flex-wrap:wrap;gap:6px}
+.emo{width:40px;height:40px;border-radius:12px;border:0;background:#FFF8FA;font-size:20px;display:grid;place-items:center}
+.emo[aria-pressed="true"]{background:var(--pink-soft);box-shadow:0 0 0 2px var(--pink)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.sw{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--pink-deep)}
+.btn-danger{background:#FFF0F0;color:#C24848}
+.btn-danger.armed{background:#E05757;color:#fff}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:15px;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion:no-preference){
+  .sheet:not([hidden]){animation:up .25s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes up{from{transform:translate(-50%,30px);opacity:.3}to{transform:translate(-50%,0);opacity:1}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="hero-text">
+      <h1>护肤日历</h1>
+      <p id="bubble" class="bubble">今天打卡了吗？</p>
+    </div>
+    <button id="mascot" class="mascot" type="button" aria-label="打开今天">
+      <svg viewBox="0 0 100 108" aria-hidden="true">
+        <defs>
+          <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC2D3"/><stop offset="1" stop-color="#FF8FAE"/></linearGradient>
+        </defs>
+        <ellipse cx="50" cy="104" rx="26" ry="4" fill="#F7D3DE"/>
+        <path d="M50 6 C50 6 16 46 16 68 A34 34 0 0 0 84 68 C84 46 50 6 50 6 Z" fill="url(#dg)"/>
+        <ellipse cx="34" cy="46" rx="6" ry="10" fill="#fff" opacity=".55" transform="rotate(25 34 46)"/>
+        <ellipse cx="31" cy="78" rx="7" ry="4.5" fill="#FF6F95" opacity=".45"/>
+        <ellipse cx="69" cy="78" rx="7" ry="4.5" fill="#FF6F95" opacity=".45"/>
+        <g class="happy" fill="none" stroke="#4B3541" stroke-width="3.2" stroke-linecap="round">
+          <path d="M33 70 Q38 63 43 70"/><path d="M57 70 Q62 63 67 70"/>
+          <path d="M44 80 Q50 86 56 80"/>
+        </g>
+        <g class="tired">
+          <g fill="none" stroke="#4B3541" stroke-width="3.2" stroke-linecap="round">
+            <path d="M34 65 L42 69.5 L34 74"/><path d="M66 65 L58 69.5 L66 74"/>
+            <path d="M44 84 Q47 80 50 84 Q53 88 56 84"/>
+          </g>
+          <path d="M80 40 C80 40 74 48 74 52 A6 6 0 0 0 86 52 C86 48 80 40 80 40 Z" fill="#9BD3F5"/>
+        </g>
+      </svg>
+    </button>
+  </header>
+
+  <section class="card" aria-label="日历">
+    <div class="cal-head">
+      <div class="month">
+        <button id="prev" class="round" type="button" aria-label="上个月">‹</button>
+        <h2 id="monthLabel">—</h2>
+        <button id="next" class="round" type="button" aria-label="下个月">›</button>
+      </div>
+      <button id="todayBtn" class="pill" type="button">今天</button>
+    </div>
+    <div class="dow"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    <div id="grid" class="grid"></div>
+    <div class="legend"><span>☀️ 上排是早上</span><span>🌙 下排是晚上</span><span>🩹 皮肤有状况</span></div>
+  </section>
+
+  <section aria-label="节奏">
+    <div class="sec-head"><h2>护肤节奏</h2><button id="tagsBtn" class="pill solid" type="button">管理标签</button></div>
+    <div id="skinAlert" class="alert" hidden></div>
+    <div id="stats" class="stats"></div>
+  </section>
+
+  <section class="card data" aria-label="我的数据">
+    <h2>我的数据</h2>
+    <p id="dataNote">记录只存在这台手机里。换手机或清理 Safari 前，记得先导出备份。</p>
+    <div class="row">
+      <button id="exportBtn" class="pill solid" type="button">导出备份</button>
+      <button id="importBtn" class="pill" type="button">从备份恢复</button>
+      <input id="importFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div id="importConfirm" class="confirm" hidden>
+      <span id="importText"></span>
+      <div class="row">
+        <button id="importYes" class="pill solid" type="button">用备份覆盖</button>
+        <button id="importNo" class="pill" type="button">取消</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="scrim" class="scrim" hidden></div>
+
+<section id="daySheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="dayTitle">
+  <div class="sheet-head"><h2 id="dayTitle"></h2><button id="dayClose" class="pill solid" type="button">完成</button></div>
+  <div class="sheet-body">
+    <h3>☀️ 早上</h3><div id="amTags" class="chips"></div>
+    <h3>🌙 晚上</h3><div id="pmTags" class="chips"></div>
+    <h3>皮肤今天怎么样</h3><div id="skinChips" class="chips"></div>
+    <h3>备注</h3>
+    <textarea id="note" rows="3" placeholder="比如：鼻翼有点脱皮，今晚停 A 酸"></textarea>
+    <p class="hint">点一下就记上了，会自动保存。</p>
+  </div>
+</section>
+
+<section id="tagSheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="tagTitle">
+  <div class="sheet-head"><h2 id="tagTitle">我的标签</h2><button id="tagClose" class="pill solid" type="button">完成</button></div>
+  <div class="sheet-body">
+    <div id="tagList" class="tag-list"></div>
+    <form id="tagForm" class="form" autocomplete="off">
+      <div id="formTitle" class="form-title">新标签</div>
+      <div class="fields">
+        <label for="tagName">名称<input id="tagName" type="text" maxlength="16" placeholder="比如 果酸、维C"></label>
+        <label for="tagIcon">图标<input id="tagIcon" type="text" maxlength="4" placeholder="表情或1–2字"></label>
+      </div>
+      <div id="emojis" class="emoji-row" role="group" aria-label="选一个图标"></div>
+      <div id="swatches" class="swatches" role="group" aria-label="颜色"></div>
+      <div class="row">
+        <button id="tagSave" class="pill solid" type="submit">添加</button>
+        <button id="tagNew" class="pill" type="button" hidden>取消编辑</button>
+        <button id="tagDelete" class="pill btn-danger" type="button" hidden>删除</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script>
+const PALETTE=['#FFC2D4','#D9C7FF','#BFE9D6','#BFDDFF','#FFD6B5','#FFE79A','#FFB8B8','#EBC4F2','#D3E8B5','#E9D8C6'];
+const EMOJIS=['🧪','🫧','💧','🌙','☀️','🍋','🍑','🌿','🧴','🎭','🛁','😴','☁️','💜','⭐','🌸'];
+const DEFAULT_TAGS=[
+  {id:'aacid',name:'A酸',icon:'🧪',color:'#FFC2D4'},
+  {id:'azelaic',name:'壬二酸',icon:'🫧',color:'#D9C7FF'},
+  {id:'relax',name:'Relax day',icon:'☁️',color:'#BFE9D6'},
+  {id:'mask',name:'补水面膜',icon:'💧',color:'#BFDDFF'}
+];
+const SKIN=[
+  {k:'ok',n:'稳定',e:'✨',bad:false},{k:'dry',n:'干燥',e:'🌵',bad:true},{k:'peel',n:'脱皮',e:'🍂',bad:true},
+  {k:'red',n:'泛红',e:'🍓',bad:true},{k:'sting',n:'刺痛',e:'⚡',bad:true},{k:'acne',n:'爆痘',e:'😣',bad:true}
+];
+const WD=['日','一','二','三','四','五','六'];
+const LS='skin-diary-v1';
+
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const keyOf=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+const todayKey=()=>{const t=new Date();return keyOf(t.getFullYear(),t.getMonth(),t.getDate())};
+const parseKey=k=>{const[y,m,d]=k.split('-').map(Number);return{y,m:m-1,d}};
+const dayNum=k=>{const p=parseKey(k);return Date.UTC(p.y,p.m,p.d)/86400000};
+const dowOf=k=>{const p=parseKey(k);return new Date(p.y,p.m,p.d).getDay()};
+const fmtShort=k=>{const p=parseKey(k);return `${p.m+1}/${p.d} 周${WD[dowOf(k)]}`};
+const fmtLong=k=>{const p=parseKey(k);return `${p.m+1}月${p.d}日 周${WD[dowOf(k)]}`+(k===todayKey()?' · 今天':'')};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const firstChar=s=>Array.from(s.trim())[0]||'?';
+const iconOf=t=>t.icon||firstChar(t.name);
+
+const now=new Date();
+const S={tags:[],days:{},backupAt:null,y:now.getFullYear(),m:now.getMonth(),openDate:null,editTagId:null,color:PALETTE[0],icon:'',pendingImport:null};
+
+const tagById=id=>S.tags.find(t=>t.id===id);
+const blankDay=()=>({am:[],pm:[],skin:[],note:''});
+const getDay=k=>S.days[k]||blankDay();
+const isEmptyDay=d=>!((d.am&&d.am.length)||(d.pm&&d.pm.length)||(d.skin&&d.skin.length)||(d.note||'').trim());
+const badStates=d=>SKIN.filter(x=>x.bad&&(d.skin||[]).includes(x.k));
+
+function h(tag,attrs,...kids){
+  const el=document.createElement(tag);
+  if(attrs)for(const[k,v]of Object.entries(attrs)){
+    if(v==null||v===false)continue;
+    if(k==='class')el.className=v;
+    else if(k==='style')el.style.cssText=v;
+    else if(k.startsWith('on'))el.addEventListener(k.slice(2),v);
+    else el.setAttribute(k,v===true?'':v);
+  }
+  for(const c of kids.flat()){if(c==null||c===false)continue;el.append(c.nodeType?c:document.createTextNode(String(c)))}
+  return el;
+}
+let toastTimer=0;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,2400)}
+
+/* ---------- storage (this phone) ---------- */
+function load(){
+  try{
+    const raw=localStorage.getItem(LS);
+    if(raw){const o=JSON.parse(raw);S.tags=o.tags||[];S.days=o.days||{};S.backupAt=o.backupAt||null;return}
+  }catch(e){}
+  S.tags=clone(DEFAULT_TAGS);save();
+}
+function save(){
+  try{localStorage.setItem(LS,JSON.stringify({tags:S.tags,days:S.days,backupAt:S.backupAt}))}
+  catch(e){toast('没存上，手机空间可能满了')}
+}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+/* ---------- render ---------- */
+function minis(ids){
+  const set=new Set(ids||[]);
+  return S.tags.filter(t=>set.has(t.id)).map(t=>h('i',{class:'mini',style:`background:${t.color}`},iconOf(t)));
+}
+function dayLabel(k,d){
+  const names=ids=>S.tags.filter(t=>(ids||[]).includes(t.id)).map(t=>t.name).join('、');
+  const parts=[fmtLong(k)];
+  if(d.am&&d.am.length)parts.push('早上 '+names(d.am));
+  if(d.pm&&d.pm.length)parts.push('晚上 '+names(d.pm));
+  return parts.join('，');
+}
+function renderGrid(){
+  $('#monthLabel').textContent=`${S.y}年${S.m+1}月`;
+  const off=(new Date(S.y,S.m,1).getDay()+6)%7;
+  const dim=new Date(S.y,S.m+1,0).getDate();
+  const total=Math.ceil((off+dim)/7)*7;
+  const tk=todayKey();
+  const cells=[];
+  for(let i=0;i<total;i++){
+    const dt=new Date(S.y,S.m,1-off+i);
+    const k=keyOf(dt.getFullYear(),dt.getMonth(),dt.getDate());
+    const d=getDay(k);
+    const cls=['cell'];
+    if(dt.getMonth()!==S.m)cls.push('out');
+    if(k===tk)cls.push('today');
+    if(badStates(d).length)cls.push('warn');
+    if((d.note||'').trim())cls.push('noted');
+    cells.push(h('button',{class:cls.join(' '),type:'button','aria-label':dayLabel(k,d),onclick:()=>openDay(k)},
+      h('span',{class:'dnum'},dt.getDate()),
+      h('span',{class:'slot'},minis(d.am)),
+      h('span',{class:'slot'},minis(d.pm))
+    ));
+  }
+  $('#grid').replaceChildren(...cells);
+}
+function renderHero(){
+  const tk=todayKey(),tn=dayNum(tk);
+  const past=Object.keys(S.days).filter(k=>k<=tk).sort().reverse();
+  const badKey=past.find(k=>badStates(S.days[k]).length);
+  const recentBad=badKey&&tn-dayNum(badKey)<=3;
+  $('#mascot').classList.toggle('is-tired',!!recentBad);
+  let msg;
+  if(recentBad){
+    const what=badStates(S.days[badKey]).map(x=>x.n).join('、');
+    msg=badKey===tk?`今天有点${what}，对皮肤温柔一点～`:`${fmtShort(badKey)}${what}了，先缓一缓吧`;
+  }else if(S.days[tk]&&!isEmptyDay(S.days[tk])){
+    msg='今天打过卡啦，皮肤乖乖的 ✨';
+  }else{
+    msg='今天还没打卡哦，点我就能记～';
+  }
+  $('#bubble').textContent=msg;
+
+  const alert=$('#skinAlert');
+  if(badKey&&tn-dayNum(badKey)<=14){
+    const ago=tn-dayNum(badKey);
+    alert.replaceChildren(h('span',null,'🩹'),h('span',null,`最近一次皮肤状况：${fmtShort(badKey)} ${badStates(S.days[badKey]).map(x=>x.n).join('、')}（${ago===0?'今天':ago+' 天前'}）`));
+    alert.hidden=false;
+  }else alert.hidden=true;
+}
+function renderStats(){
+  const box=$('#stats');
+  if(!S.tags.length){
+    box.replaceChildren(h('div',{class:'stat empty',style:'grid-column:1/-1'},
+      h('p',null,'还没有标签，先加几个常用的步骤吧'),
+      h('div',{class:'row',style:'justify-content:center'},
+        h('button',{class:'pill solid',type:'button',onclick:()=>{S.tags=clone(DEFAULT_TAGS);save();renderAll();toast('加好啦')}},'加上默认的 4 个'),
+        h('button',{class:'pill',type:'button',onclick:openTags},'自己添加'))));
+    return;
+  }
+  const tk=todayKey(),tn=dayNum(tk);
+  const past=Object.keys(S.days).filter(k=>k<=tk).sort().reverse();
+  const prefix=`${S.y}-${pad(S.m+1)}-`;
+  box.replaceChildren(...S.tags.map(t=>{
+    let last=null;
+    for(const k of past){
+      const d=S.days[k],a=(d.am||[]).includes(t.id),p=(d.pm||[]).includes(t.id);
+      if(a||p){last={k,slot:a&&p?'☀️🌙':a?'☀️':'🌙'};break}
+    }
+    let cnt=0;
+    for(const[k,d]of Object.entries(S.days))if(k.startsWith(prefix))cnt+=((d.am||[]).includes(t.id)?1:0)+((d.pm||[]).includes(t.id)?1:0);
+    const ago=last?tn-dayNum(last.k):null;
+    return h('div',{class:'stat'},
+      h('div',{class:'stat-top'},h('i',{class:'mini',style:`background:${t.color}`},iconOf(t)),h('span',{class:'stat-name'},t.name)),
+      h('div',{class:'stat-ago'},ago==null?h('span',null,'还没用过'):ago===0?h('span',{class:'now'},'今天'):[h('b',null,ago),'天前']),
+      h('div',{class:'stat-sub'},last?`上次 ${fmtShort(last.k)} ${last.slot}`:'—',h('br'),`${S.m+1}月 ${cnt} 次`)
+    );
+  }));
+}
+function renderDaySheet(){
+  if(!S.openDate)return;
+  const d=getDay(S.openDate);
+  for(const slot of['am','pm']){
+    const box=$('#'+slot+'Tags');
+    if(!S.tags.length){box.replaceChildren(h('button',{class:'pill',type:'button',onclick:()=>{closeSheets();openTags()}},'先去添加标签'));continue}
+    box.replaceChildren(...S.tags.map(t=>{
+      const on=(d[slot]||[]).includes(t.id);
+      return h('button',{type:'button',class:'chip'+(on?' on':''),'aria-pressed':on?'true':'false',style:`--c:${t.color}`,onclick:()=>toggleTag(slot,t.id)},h('span',{class:'ic'},iconOf(t)),t.name);
+    }));
+  }
+  $('#skinChips').replaceChildren(...SKIN.map(x=>{
+    const on=(d.skin||[]).includes(x.k);
+    return h('button',{type:'button',class:'chip skin'+(x.bad?'':' good')+(on?' on':''),'aria-pressed':on?'true':'false',onclick:()=>toggleSkin(x)},h('span',{class:'ic'},x.e),x.n);
+  }));
+}
+function renderTagSheet(){
+  $('#tagList').replaceChildren(...S.tags.map(t=>h('button',{type:'button',class:'tag-row'+(S.editTagId===t.id?' sel':''),onclick:()=>editTag(t.id)},
+    h('i',{class:'mini',style:`background:${t.color}`},iconOf(t)),h('span',null,t.name),h('span',{class:'edit'},'编辑'))));
+  $('#emojis').replaceChildren(...EMOJIS.map(e=>h('button',{type:'button',class:'emo','aria-pressed':S.icon===e?'true':'false',onclick:()=>{S.icon=e;$('#tagIcon').value=e;renderTagSheet()}},e)));
+  $('#swatches').replaceChildren(...PALETTE.map(c=>h('button',{type:'button',class:'sw',style:`background:${c}`,'aria-label':'颜色','aria-pressed':S.color===c?'true':'false',onclick:()=>{S.color=c;renderTagSheet()}})));
+}
+function renderData(){
+  $('#dataNote').textContent='记录只存在这台手机里。换手机或清理 Safari 前，记得先导出备份。'+(S.backupAt?`上次备份：${fmtShort(S.backupAt)}`:'还没备份过。');
+}
+function renderAll(){renderGrid();renderHero();renderStats();renderDaySheet();renderData();if(!$('#tagSheet').hidden)renderTagSheet()}
+
+/* ---------- day edits ---------- */
+function updateDay(k,fn){
+  const d=Object.assign(blankDay(),clone(getDay(k)));
+  fn(d);
+  if(isEmptyDay(d))delete S.days[k];else S.days[k]=d;
+  save();renderGrid();renderHero();renderStats();
+}
+function toggleTag(slot,id){
+  updateDay(S.openDate,d=>{const i=d[slot].indexOf(id);if(i>=0)d[slot].splice(i,1);else d[slot].push(id)});
+  renderDaySheet();
+}
+function toggleSkin(x){
+  updateDay(S.openDate,d=>{
+    const i=d.skin.indexOf(x.k);
+    if(i>=0){d.skin.splice(i,1);return}
+    d.skin=x.bad?d.skin.filter(s=>s!=='ok'):[];
+    d.skin.push(x.k);
+  });
+  renderDaySheet();
+}
+$('#note').addEventListener('input',e=>{const v=e.target.value;updateDay(S.openDate,d=>{d.note=v})});
+
+/* ---------- tag edits ---------- */
+function nextColor(){const used=new Set(S.tags.map(t=>t.color));return PALETTE.find(c=>!used.has(c))||PALETTE[S.tags.length%PALETTE.length]}
+function disarm(){const b=$('#tagDelete');b.classList.remove('armed');b.textContent='删除'}
+function resetForm(){
+  S.editTagId=null;S.color=nextColor();S.icon='';
+  $('#formTitle').textContent='新标签';$('#tagName').value='';$('#tagIcon').value='';
+  $('#tagSave').textContent='添加';$('#tagNew').hidden=true;$('#tagDelete').hidden=true;disarm();
+  renderTagSheet();
+}
+function editTag(id){
+  const t=tagById(id);if(!t)return;
+  S.editTagId=id;S.color=t.color;S.icon=t.icon||'';
+  $('#formTitle').textContent=`编辑「${t.name}」`;$('#tagName').value=t.name;$('#tagIcon').value=t.icon||'';
+  $('#tagSave').textContent='保存';$('#tagNew').hidden=false;$('#tagDelete').hidden=false;disarm();
+  renderTagSheet();
+}
+$('#tagIcon').addEventListener('input',e=>{S.icon=e.target.value.trim();renderTagSheet()});
+$('#tagForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('#tagName').value.trim();
+  if(!name){toast('先给标签起个名字');$('#tagName').focus();return}
+  const icon=$('#tagIcon').value.trim()||firstChar(name);
+  if(S.editTagId){
+    S.tags=S.tags.map(t=>t.id===S.editTagId?{...t,name,icon,color:S.color}:t);
+    toast('改好啦');
+  }else{
+    S.tags=S.tags.concat({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,icon,color:S.color});
+    toast(`加好啦：${name}`);
+  }
+  save();resetForm();renderAll();
+});
+$('#tagNew').addEventListener('click',resetForm);
+$('#tagDelete').addEventListener('click',()=>{
+  const b=$('#tagDelete');
+  if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='再点一次确认删除';return}
+  const t=tagById(S.editTagId);
+  S.tags=S.tags.filter(x=>x.id!==S.editTagId);
+  save();resetForm();renderAll();
+  if(t)toast(`删掉了「${t.name}」`);
+});
+
+/* ---------- backup ---------- */
+$('#exportBtn').addEventListener('click',async()=>{
+  const tk=todayKey();
+  const json=JSON.stringify({app:'skin-diary',v:1,exportedAt:new Date().toISOString(),tags:S.tags,days:S.days},null,1);
+  const name=`护肤日历备份-${tk}.json`;
+  const file=new File([json],name,{type:'application/json'});
+  const mark=()=>{S.backupAt=tk;save();renderData()};
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:name});mark();toast('备份好啦');return;
+    }
+  }catch(e){if(e&&e.name==='AbortError')return}
+  const url=URL.createObjectURL(file);
+  const a=h('a',{href:url,download:name});document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  mark();toast('备份文件已下载');
+});
+$('#importBtn').addEventListener('click',()=>$('#importFile').click());
+$('#importFile').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';
+  if(!f)return;
+  try{
+    const o=JSON.parse(await f.text());
+    if(!o||o.app!=='skin-diary'||!Array.isArray(o.tags)||typeof o.days!=='object')throw 0;
+    S.pendingImport=o;
+    $('#importText').textContent=`这份备份有 ${o.tags.length} 个标签、${Object.keys(o.days).length} 天记录（${(o.exportedAt||'').slice(0,10)}）。恢复后会替换手机上现在的记录。`;
+    $('#importConfirm').hidden=false;
+  }catch(err){toast('这个文件不是护肤日历的备份')}
+});
+$('#importYes').addEventListener('click',()=>{
+  const o=S.pendingImport;if(!o)return;
+  S.tags=o.tags;S.days=o.days;S.pendingImport=null;save();
+  $('#importConfirm').hidden=true;renderAll();toast('恢复好啦');
+});
+$('#importNo').addEventListener('click',()=>{S.pendingImport=null;$('#importConfirm').hidden=true});
+
+/* ---------- sheets ---------- */
+function show(id){$('#scrim').hidden=false;$('#'+id).hidden=false;document.body.classList.add('locked')}
+function closeSheets(){
+  S.openDate=null;
+  $('#daySheet').hidden=true;$('#tagSheet').hidden=true;$('#scrim').hidden=true;
+  document.body.classList.remove('locked');
+}
+function openDay(k){
+  S.openDate=k;
+  $('#dayTitle').textContent=fmtLong(k);
+  $('#note').value=getDay(k).note||'';
+  renderDaySheet();show('daySheet');$('#daySheet').scrollTop=0;
+}
+function openTags(){resetForm();show('tagSheet')}
+$('#dayClose').addEventListener('click',closeSheets);
+$('#tagClose').addEventListener('click',closeSheets);
+$('#scrim').addEventListener('click',closeSheets);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheets()});
+$('#mascot').addEventListener('click',()=>openDay(todayKey()));
+
+/* ---------- month nav ---------- */
+function shiftMonth(n){const d=new Date(S.y,S.m+n,1);S.y=d.getFullYear();S.m=d.getMonth();renderGrid();renderStats()}
+$('#prev').addEventListener('click',()=>shiftMonth(-1));
+$('#next').addEventListener('click',()=>shiftMonth(1));
+$('#todayBtn').addEventListener('click',()=>{const t=new Date();S.y=t.getFullYear();S.m=t.getMonth();renderGrid();renderStats()});
+$('#tagsBtn').addEventListener('click',openTags);
+let tx=null,ty=null;
+$('#grid').addEventListener('touchstart',e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY},{passive:true});
+$('#grid').addEventListener('touchend',e=>{
+  if(tx==null)return;const t=e.changedTouches[0];const dx=t.clientX-tx,dy=t.clientY-ty;tx=null;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)shiftMonth(dx<0?1:-1);
+},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});
+
+/* ---------- start ---------- */
+load();renderAll();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
