@@ -225,6 +225,8 @@ h2{font-family:var(--font-cute);font-weight:400;font-size:21px;margin:0;letter-s
 .chip.feel{--c:#FFD6E0}
 .chip.sym{--c:#FFCBD8}
 .chip.mood{--c:#DCCEFF}
+.chip.del{border-color:#F3B5B5;color:#C24848;background:#FFF5F5}
+.chip.del.armed{background:#E05757;border-color:#E05757;color:#fff}
 textarea,input[type=text]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#FFF8FA;border:2px solid var(--line);border-radius:16px;padding:11px 13px}
 textarea{resize:vertical;min-height:88px}
 textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
@@ -441,6 +443,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--pink)}
     <h3>整体感觉</h3><div id="feelChips" class="chips"></div>
     <h3>身体</h3><div id="symChips" class="chips"></div>
     <div class="add-row"><input id="symNew" type="text" maxlength="10" placeholder="没有的症状自己加"><button id="symAdd" class="pill" type="button">添加</button></div>
+    <div class="row"><button id="symManage" class="pill" type="button" hidden>删除自定义症状</button></div>
     <h3>情绪</h3><div id="moodChips" class="chips"></div>
     <h3>备注</h3>
     <textarea id="cnote" rows="3" placeholder="比如：下午开始浑身酸，像要感冒"></textarea>
@@ -755,7 +758,8 @@ async function ghSync(){
     errs.push(e);
   }
   ghBusy=false;
-  if(got||errs.length<6){S.health.lastSync=todayKey();S.health.syncedAt=Date.now()}
+  if(got)S.health.syncedAt=Date.now();
+  if(!errs.length)S.health.lastSync=todayKey();
   if(errs.length===6){
     const st=errs[0].status;
     S.ghMsg=st===403?'Google 拒绝了请求（403）。刚建好的设置可能要等一阵才生效，过几十分钟再点「同步」；也请确认 Google Health App 登录的是同一个账号。'
@@ -1188,7 +1192,15 @@ function renderCycleSheet(){
     const on=(d[field]||[]).includes(s.k);
     return h('button',{type:'button',class:`chip plain ${cls}`+(on?' on':''),'aria-pressed':on?'true':'false',onclick:()=>updateC(k,x=>{const a=x[field]||(x[field]=[]);const i=a.indexOf(s.k);if(i>=0)a.splice(i,1);else a.push(s.k)})},s.n);
   });
-  $('#symChips').replaceChildren(...symChip([...SYM,...S.cycle.customSym],'sym','sym'));
+  const custom=S.cycle.customSym;
+  const mg=$('#symManage');
+  if(!custom.length)S.symEdit=false;
+  mg.hidden=!custom.length;
+  mg.textContent=S.symEdit?'删好了':'删除自定义症状';
+  if(S.symEdit){
+    $('#symChips').replaceChildren(...symChip(SYM,'sym','sym'),...custom.map(s=>h('button',{type:'button',class:'chip plain del'+(S.symArm===s.k?' armed':''),onclick:()=>delCustom(s)},
+      S.symArm===s.k?`再点一次删除「${s.n}」`:`✕ ${s.n}`)));
+  }else $('#symChips').replaceChildren(...symChip([...SYM,...custom],'sym','sym'));
   $('#moodChips').replaceChildren(...symChip(MOOD,'mood','mood'));
 }
 function renderCycle(){
@@ -1248,6 +1260,16 @@ $('#symAdd').addEventListener('click',()=>{
   updateC(S.openCDate,d=>{d.sym.push(s.k)});
   toast(`加好啦：${v}`);
 });
+$('#symManage').addEventListener('click',()=>{S.symEdit=!S.symEdit;S.symArm=null;renderCycleSheet()});
+function delCustom(s){
+  if(S.symArm!==s.k){S.symArm=s.k;renderCycleSheet();return}
+  S.cycle.customSym=S.cycle.customSym.filter(x=>x.k!==s.k);
+  for(const[k,d]of Object.entries(S.cycle.days)){
+    if(d.sym&&d.sym.includes(s.k)){d.sym=d.sym.filter(x=>x!==s.k);if(isEmptyC(d))delete S.cycle.days[k]}
+  }
+  S.symArm=null;save();renderCycle();
+  toast(`删掉了「${s.n}」`);
+}
 $('#periodBtn').addEventListener('click',()=>{
   const k=todayKey();
   updateC(k,d=>{if(!isFlow(d.flow))d.flow='medium'});
@@ -1350,7 +1372,7 @@ function openDay(k){
   renderDaySheet();show('daySheet');$('#daySheet').scrollTop=0;
 }
 function openCycleDay(k){
-  S.openCDate=k;
+  S.openCDate=k;S.symEdit=false;S.symArm=null;
   $('#cTitle').textContent=fmtLong(k);
   $('#cnote').value=(S.cycle.days[k]||{}).note||'';
   $('#symNew').value='';
